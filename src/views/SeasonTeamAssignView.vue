@@ -667,9 +667,10 @@ const syncAllDraftPlayers = async () => {
   } catch (err) {
     console.error('Failed to sync season players:', err);
     perPlayerSyncStatus.value = Object.fromEntries(list.map(p => [p.id, { state: 'error', message: err.message }]));
+  } finally {
+    await fetchData();
+    syncAllLoading.value = false;
   }
-  await fetchData();
-  syncAllLoading.value = false;
 };
 
 const editPlayer = async (player) => {
