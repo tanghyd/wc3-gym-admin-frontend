@@ -5,7 +5,7 @@
       <v-icon size="small" color="amber-darken-2">{{ badge.icon }}</v-icon>
       <v-tooltip activator="parent" location="top">{{ badge.name }} +{{ badge.points }}</v-tooltip>
     </span>
-    <span class="text-caption text-medium-emphasis ml-1">{{ points }} pts</span>
+    <span v-if="showPoints" class="text-caption text-medium-emphasis ml-1">{{ points }} pts</span>
   </div>
   <span v-else class="text-medium-emphasis">&mdash;</span>
 </template>
@@ -16,6 +16,8 @@ import { achievementPoints } from '@/helpers/achievements';
 
 const props = defineProps({
   badges: { type: Array, default: () => [] },
+  // Off where a Points column already shows the number
+  showPoints: { type: Boolean, default: true },
 });
 
 const points = computed(() => achievementPoints(props.badges));

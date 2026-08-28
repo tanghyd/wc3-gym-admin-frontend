@@ -54,7 +54,7 @@
           </div>
         </div>
         <v-spacer />
-        <a v-if="player?.battleTag" :href="w3cStatsUrl" target="_blank" class="text-caption d-inline-flex align-center"><v-icon size="x-small" :color="W3C_GOLD" class="mr-1">{{ W3C_ICON }}</v-icon>W3Champions</a>
+        <a v-if="player?.battleTag" :href="w3cStatsUrl" target="_blank" class="text-caption d-inline-flex align-center"><W3CIcon :size="14" class="mr-1" />W3Champions</a>
       </v-card-text>
     </v-card>
 
@@ -162,7 +162,7 @@ import { computed, ref, watch } from 'vue';
 import { DateTime } from 'luxon';
 import { useLadderStore, useSeasonStore } from '@/stores';
 import RaceIcon from '@/components/RaceIcon.vue';
-import { W3C_GOLD, W3C_ICON } from '@/helpers/w3c-stats';
+import W3CIcon from '@/components/W3CIcon.vue';
 import { achievementPoints, SCORED_NOTE, MMR_NOTE } from '@/helpers/achievements';
 import ColumnNote from '@/components/ColumnNote.vue';
 

@@ -113,7 +113,7 @@
     <!-- Ladder -->
     <v-card v-if="ladderTeam" elevation="2" class="mb-4">
       <v-card-title class="bg-primary d-flex align-center">
-        <v-icon class="mr-2" :color="W3C_GOLD">{{ W3C_ICON }}</v-icon>
+        <W3CIcon :size="22" class="mr-2" />
         <span>W3C Ladder</span>
       </v-card-title>
       <v-toolbar flat height="auto">
@@ -134,10 +134,13 @@
             <th style="width: 64px">Race</th>
             <th>Name</th>
             <th class="text-right">
-              <ColumnNote title="Points" :note="SCORED_NOTE" />
+              <ColumnNote title="Ladder" :note="LADDER_NOTE" />
             </th>
             <th>
               <ColumnNote title="Achievements" :note="ACHIEVEMENTS_NOTE" />
+            </th>
+            <th class="text-right">
+              <ColumnNote title="Points" :note="SCORED_NOTE" />
             </th>
             <th class="text-right">W</th>
             <th class="text-right">L</th>
@@ -151,12 +154,16 @@
           <tr v-for="row in ladderTeam.players" :key="row.id">
             <td><RaceIcon v-if="row.race" :raceIdentifier="row.race" /></td>
             <td>
-              <span class="player-name-link" @click.stop="showStats(row)">{{ row.name }}</span>
+              <div class="d-flex align-center" style="gap: 6px">
+                <FlagIcon v-if="row.country" :countryIdentifier="row.country" />
+                <span class="player-name-link" @click.stop="showStats(row)">{{ row.name }}</span>
+              </div>
+            </td>
+            <td class="text-right">{{ row.ladder_points }}</td>
+            <td>
+              <AchievementChip :badges="row.achievements" :show-points="false" />
             </td>
             <td class="text-right font-weight-bold">{{ row.points }}</td>
-            <td>
-              <AchievementChip :badges="row.achievements" />
-            </td>
             <td class="text-right text-green">{{ row.wins }}</td>
             <td class="text-right text-red">{{ row.losses }}</td>
             <td class="text-right">{{ row.mmr?.current ?? '\u2014' }}</td>
@@ -335,7 +342,7 @@ import '@/assets/base.css';
 import { useRouter } from 'vue-router';
 import { useTeamStore, usePlayerStore, useLadderStore } from '@/stores';
 import { resolveCurrentW3CSeason } from '@/helpers/current-season';
-import { SCORED_NOTE, MMR_NOTE, ACHIEVEMENTS_NOTE } from '@/helpers/achievements';
+import { SCORED_NOTE, MMR_NOTE, ACHIEVEMENTS_NOTE, LADDER_NOTE } from '@/helpers/achievements';
 import ColumnNote from '@/components/ColumnNote.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -344,7 +351,8 @@ import RaceIcon from '@/components/RaceIcon.vue';
 import AchievementChip from '@/components/AchievementChip.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import FilterPanel from '@/components/FilterPanel.vue';
-import { getW3CMMR, syncedAgo, syncedAt, agoFromIso, localFromIso, W3C_GOLD, W3C_ICON } from '@/helpers/w3c-stats';
+import { getW3CMMR, syncedAgo, syncedAt, agoFromIso, localFromIso } from '@/helpers/w3c-stats';
+import W3CIcon from '@/components/W3CIcon.vue';
 import W3CSyncResultDialog from '@/components/W3CSyncResultDialog.vue';
 
 defineOptions({ name: 'SeasonTeamDetailsView' });
