@@ -1,10 +1,12 @@
+<!-- The badges a player earned, as a row of icons with the points they paid -->
 <template>
-  <v-chip v-if="badges.length" size="small" variant="outlined">
-    {{ badges.length }} &middot; {{ points }} pts
-    <v-tooltip activator="parent" location="top">
-      <div v-for="badge in badges" :key="badge.id">{{ badge.name }} +{{ badge.points }}</div>
-    </v-tooltip>
-  </v-chip>
+  <div v-if="badges.length" class="d-flex align-center flex-wrap" style="gap: 2px">
+    <span v-for="badge in badges" :key="badge.id" class="badge-icon">
+      <v-icon size="small" color="amber-darken-2">{{ badge.icon }}</v-icon>
+      <v-tooltip activator="parent" location="top">{{ badge.name }} +{{ badge.points }}</v-tooltip>
+    </span>
+    <span class="text-caption text-medium-emphasis ml-1">{{ points }} pts</span>
+  </div>
   <span v-else class="text-medium-emphasis">&mdash;</span>
 </template>
 
@@ -18,3 +20,10 @@ const props = defineProps({
 
 const points = computed(() => achievementPoints(props.badges));
 </script>
+
+<style scoped>
+.badge-icon {
+  cursor: help;
+  line-height: 1;
+}
+</style>

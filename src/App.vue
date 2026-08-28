@@ -79,7 +79,7 @@ const showNavLinks = () => {
                                 <RouterLink to="/report">Season Report</RouterLink>
                             </v-list-item>
                             <v-list-item>
-                                <RouterLink to="/ladder">Ladder</RouterLink>
+                                <RouterLink to="/ladder">W3C Ladder</RouterLink>
                             </v-list-item>
                         </v-list>
                     </v-menu>
