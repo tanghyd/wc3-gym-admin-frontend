@@ -8,10 +8,9 @@
     <v-row class="mb-4">
       <v-col>
         <h1>
-          <v-icon class="mr-2" :color="W3C_GOLD">{{ W3C_ICON }}</v-icon>
+          <W3CIcon :size="40" class="mr-2" />
           W3C Ladder
         </h1>
-        <div class="text-caption text-medium-emphasis">Ranked 1v1 played on w3champions, not the GNL series</div>
       </v-col>
     </v-row>
 
@@ -67,7 +66,7 @@
     <!-- Empty State -->
     <v-card v-if="ladder && !ladder.total_games" elevation="2">
       <v-card-text class="text-center pa-8">
-        <v-icon size="64" color="grey-lighten-1">{{ W3C_ICON }}</v-icon>
+        <W3CIcon :size="64" style="opacity: 0.35" />
         <div class="text-h6 text-grey mt-4 mb-2">No ladder games synced for {{ seasonName }}</div>
         <p class="text-grey-darken-1 mb-4">Sync the season to fetch its W3Champions matches</p>
         <v-btn
@@ -183,9 +182,17 @@
               <ColumnNote :title="column.title" :note="SCORED_NOTE"
                 :sort-icon="isSorted(column) ? getSortIcon(column) : null" />
             </template>
+            <template v-slot:[`header.ladder_points`]="{ column, isSorted, getSortIcon }">
+              <ColumnNote :title="column.title" :note="LADDER_NOTE"
+                :sort-icon="isSorted(column) ? getSortIcon(column) : null" />
+            </template>
             <template v-slot:[`header.achievements`]="{ column }">
               <ColumnNote :title="column.title" :note="ACHIEVEMENTS_NOTE" />
             </template>
+            <template v-slot:[`item.achievements`]="{ item }">
+              <AchievementChip :badges="item.achievements" :show-points="false" />
+            </template>
+            <template v-slot:[`item.ladder_points`]="{ item }">{{ item.ladder_points }}</template>
             <template v-slot:[`header.mmrDiff`]="{ column, isSorted, getSortIcon }">
               <ColumnNote :title="column.title" :note="MMR_NOTE"
                 :sort-icon="isSorted(column) ? getSortIcon(column) : null" />
@@ -194,9 +201,12 @@
               <RaceIcon v-if="item.race" :raceIdentifier="item.race" />
             </template>
             <template v-slot:[`item.name`]="{ item }">
-              <span class="player-name-link" @click.stop="openPlayerDetails(item)">
-                <strong>{{ item.name }}</strong>
-              </span>
+              <div class="d-flex align-center" style="gap: 6px">
+                <FlagIcon v-if="item.country" :countryIdentifier="item.country" />
+                <span class="player-name-link" @click.stop="openPlayerDetails(item)">
+                  <strong>{{ item.name }}</strong>
+                </span>
+              </div>
             </template>
             <template v-slot:[`item.teamName`]="{ item }">
               <div class="d-flex align-center">
@@ -221,9 +231,6 @@
               <span v-else :class="item.mmrDiff > 0 ? 'text-green' : item.mmrDiff < 0 ? 'text-red' : ''">
                 {{ item.mmrDiff > 0 ? `+${item.mmrDiff}` : item.mmrDiff }}
               </span>
-            </template>
-            <template v-slot:[`item.achievements`]="{ item }">
-              <AchievementChip :badges="item.achievements" />
             </template>
           </v-data-table>
         </v-card-text>
@@ -250,13 +257,15 @@ import { storeToRefs } from 'pinia';
 import { RouterLink } from 'vue-router';
 import { useLadderStore, useSeasonStore } from '@/stores';
 import { resolveCurrentSeasonId, resolveCurrentW3CSeason } from '@/helpers/current-season';
-import { agoFromIso, localFromIso, W3C_GOLD, W3C_ICON } from '@/helpers/w3c-stats';
+import { agoFromIso, localFromIso } from '@/helpers/w3c-stats';
+import W3CIcon from '@/components/W3CIcon.vue';
 import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
-import { SCORED_NOTE, MMR_NOTE, ACHIEVEMENTS_NOTE } from '@/helpers/achievements';
+import { SCORED_NOTE, MMR_NOTE, ACHIEVEMENTS_NOTE, LADDER_NOTE } from '@/helpers/achievements';
 import ColumnNote from '@/components/ColumnNote.vue';
 import FilterPanel from '@/components/FilterPanel.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import RaceIcon from '@/components/RaceIcon.vue';
+import FlagIcon from '@/components/FlagIcon.vue';
 import AchievementChip from '@/components/AchievementChip.vue';
 import W3CSyncResultDialog from '@/components/W3CSyncResultDialog.vue';
 
@@ -287,8 +296,9 @@ const tableHeader = computed(() => [
   { title: 'Race', key: 'race', sortable: true, width: 64 },
   { title: 'Name', key: 'name', sortable: true },
   { title: 'Team', key: 'teamName', sortable: true },
-  { title: 'Points', key: 'points', sortable: true },
+  { title: 'Ladder', key: 'ladder_points', sortable: true },
   { title: 'Achievements', key: 'achievements', sortable: false },
+  { title: 'Points', key: 'points', sortable: true },
   { title: 'Wins', key: 'wins', sortable: true },
   { title: 'Losses', key: 'losses', sortable: true },
   { title: 'MMR', key: 'mmr', sortable: true },
