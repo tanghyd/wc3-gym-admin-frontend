@@ -68,7 +68,7 @@
       <v-col cols="12" sm="3">
         <v-card variant="outlined">
           <v-card-title class="bg-primary text-body-2 d-flex align-center py-1">
-            <v-icon size="small" class="mr-2">mdi-star</v-icon>{{ mmrHeader }}
+            <v-icon size="small" class="mr-2">mdi-star</v-icon>MMR
           </v-card-title>
           <v-card-text class="text-center">
             <div class="text-h5">{{ data?.mmr?.current ?? '—' }}</div>
@@ -194,7 +194,8 @@
         </template>
         <template v-slot:[`item.duration_s`]="{ item }">{{ duration(item.duration_s) }}</template>
         <template v-slot:[`item.mmr_diff`]="{ item }">
-          <span :class="mmrDiff(item) > 0 ? 'text-green' : mmrDiff(item) < 0 ? 'text-red' : ''">
+          <span v-if="mmrDiff(item) == null">—</span>
+          <span v-else :class="mmrDiff(item) > 0 ? 'text-green' : mmrDiff(item) < 0 ? 'text-red' : ''">
             {{ mmrDiff(item) > 0 ? `+${mmrDiff(item)}` : mmrDiff(item) }}
           </span>
         </template>
@@ -213,7 +214,6 @@ import { achievementPoints } from '@/helpers/achievements';
 const props = defineProps({
   player: { type: Object, default: null },
   seasonId: { type: Number, default: null },
-  w3cSeason: { type: Number, default: null },
 });
 
 const emit = defineEmits(['open-player']);
@@ -244,8 +244,6 @@ const matchHeaders = [
   { title: 'Duration', key: 'duration_s', sortable: false },
   { title: 'MMR +/-', key: 'mmr_diff', sortable: false },
 ];
-
-const mmrHeader = computed(() => (props.w3cSeason ? `MMR (S${props.w3cSeason})` : 'MMR'));
 
 const w3cStatsUrl = computed(
   () => `https://www.w3champions.com/player/${encodeURIComponent(props.player?.battleTag ?? '')}/statistics`
@@ -365,7 +363,9 @@ const duration = (seconds) => {
   const total = seconds ?? 0;
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 };
-const mmrDiff = (match) => (match.mmr_after ?? 0) - (match.mmr_before ?? 0);
+// A placement match carries no MMR at either end, so it has no gain to show
+const mmrDiff = (match) =>
+  match.mmr_after != null && match.mmr_before != null ? match.mmr_after - match.mmr_before : null;
 
 const loadPage = async ({ page, itemsPerPage: perPage }) => {
   if (!props.player?.id) return;

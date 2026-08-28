@@ -200,9 +200,10 @@
             <template v-slot:[`item.losses`]="{ item }">
               <span class="text-red">{{ item.losses }}</span>
             </template>
-            <template v-slot:[`item.mmr`]="{ item }">{{ item.mmr || '—' }}</template>
+            <template v-slot:[`item.mmr`]="{ item }">{{ item.mmr ?? '—' }}</template>
             <template v-slot:[`item.mmrDiff`]="{ item }">
-              <span :class="item.mmrDiff > 0 ? 'text-green' : item.mmrDiff < 0 ? 'text-red' : ''">
+              <span v-if="item.mmrDiff == null">—</span>
+              <span v-else :class="item.mmrDiff > 0 ? 'text-green' : item.mmrDiff < 0 ? 'text-red' : ''">
                 {{ item.mmrDiff > 0 ? `+${item.mmrDiff}` : item.mmrDiff }}
               </span>
             </template>
@@ -271,7 +272,7 @@ const tableHeader = computed(() => [
   { title: 'Points', key: 'points', sortable: true },
   { title: 'Wins', key: 'wins', sortable: true },
   { title: 'Losses', key: 'losses', sortable: true },
-  { title: currentW3CSeason.value ? `MMR (S${currentW3CSeason.value})` : 'MMR', key: 'mmr', sortable: true },
+  { title: 'MMR', key: 'mmr', sortable: true },
   { title: 'MMR +/-', key: 'mmrDiff', sortable: true },
   { title: 'Achievements', key: 'achievements', sortable: false },
 ]);
@@ -314,8 +315,11 @@ const allPlayers = computed(() =>
       ...player,
       teamId: team.id,
       teamName: team.name,
-      mmr: player.mmr?.current ?? 0,
-      mmrDiff: (player.mmr?.current ?? 0) - (player.mmr?.start ?? 0),
+      mmr: player.mmr?.current ?? null,
+      // A player still in his placement games has no MMR, so there is no span to subtract
+      mmrDiff: player.mmr?.current != null && player.mmr?.start != null
+        ? player.mmr.current - player.mmr.start
+        : null,
     }))
   )
 );
