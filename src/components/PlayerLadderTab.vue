@@ -35,7 +35,10 @@
       <v-col v-if="scoped" cols="12" sm="3">
         <v-card variant="outlined">
           <v-card-title class="bg-primary text-body-2 d-flex align-center py-1">
-            <v-icon size="small" class="mr-2">mdi-trophy</v-icon>Points
+            <v-icon size="small" class="mr-2">mdi-trophy</v-icon>
+            <span class="noted">Points
+              <v-tooltip activator="parent" location="top" max-width="320">{{ SCORED_NOTE }}</v-tooltip>
+            </span>
           </v-card-title>
           <v-card-text class="text-center">
             <div class="text-h5">{{ data?.points ?? 0 }}</div>
@@ -68,7 +71,10 @@
       <v-col cols="12" sm="3">
         <v-card variant="outlined">
           <v-card-title class="bg-primary text-body-2 d-flex align-center py-1">
-            <v-icon size="small" class="mr-2">mdi-star</v-icon>MMR
+            <v-icon size="small" class="mr-2">mdi-star</v-icon>
+            <span class="noted">MMR
+              <v-tooltip activator="parent" location="top" max-width="320">{{ MMR_NOTE }}</v-tooltip>
+            </span>
           </v-card-title>
           <v-card-text class="text-center">
             <div class="text-h5">{{ data?.mmr?.current ?? '—' }}</div>
@@ -209,7 +215,7 @@ import { computed, ref, watch } from 'vue';
 import { DateTime } from 'luxon';
 import { useLadderStore, useSeasonStore } from '@/stores';
 import RaceIcon from '@/components/RaceIcon.vue';
-import { achievementPoints } from '@/helpers/achievements';
+import { achievementPoints, SCORED_NOTE, MMR_NOTE } from '@/helpers/achievements';
 
 const props = defineProps({
   player: { type: Object, default: null },
@@ -402,6 +408,11 @@ watch(() => [props.player?.id, props.seasonId], () => {
 </script>
 
 <style scoped>
+/* A tile heading that carries a tooltip, marked so the reader knows to hover */
+.noted {
+  border-bottom: 1px dotted currentColor;
+  cursor: help;
+}
 .badge-row {
   padding: 4px 0;
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));

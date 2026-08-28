@@ -133,11 +133,19 @@
           <tr>
             <th>Main Race</th>
             <th>Name</th>
-            <th class="text-right">Points</th>
+            <th class="text-right">
+              <span class="noted">Points
+                <v-tooltip activator="parent" location="top" max-width="320">{{ SCORED_NOTE }}</v-tooltip>
+              </span>
+            </th>
             <th class="text-right">W</th>
             <th class="text-right">L</th>
-            <th class="text-right">{{ ladderMmrHeader }}</th>
-            <th class="text-right">MMR +/-</th>
+            <th class="text-right">MMR</th>
+            <th class="text-right">
+              <span class="noted">MMR +/-
+                <v-tooltip activator="parent" location="top" max-width="320">{{ MMR_NOTE }}</v-tooltip>
+              </span>
+            </th>
             <th>Achievements</th>
           </tr>
         </thead>
@@ -152,9 +160,10 @@
             </td>
             <td class="text-right text-green">{{ row.wins }}</td>
             <td class="text-right text-red">{{ row.losses }}</td>
-            <td class="text-right">{{ row.mmr?.current || '\u2014' }}</td>
+            <td class="text-right">{{ row.mmr?.current ?? '\u2014' }}</td>
             <td class="text-right" :class="ladderMmrDiff(row) > 0 ? 'text-green' : ladderMmrDiff(row) < 0 ? 'text-red' : ''">
-              {{ ladderMmrDiff(row) > 0 ? `+${ladderMmrDiff(row)}` : ladderMmrDiff(row) }}
+              <span v-if="ladderMmrDiff(row) == null">&mdash;</span>
+              <span v-else>{{ ladderMmrDiff(row) > 0 ? `+${ladderMmrDiff(row)}` : ladderMmrDiff(row) }}</span>
             </td>
             <td>
               <AchievementChip :badges="row.achievements" />
@@ -330,6 +339,7 @@ import '@/assets/base.css';
 import { useRouter } from 'vue-router';
 import { useTeamStore, usePlayerStore, useLadderStore } from '@/stores';
 import { resolveCurrentW3CSeason } from '@/helpers/current-season';
+import { SCORED_NOTE, MMR_NOTE } from '@/helpers/achievements';
 import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import FlagIcon from '@/components/FlagIcon.vue';
@@ -399,9 +409,9 @@ const ladderRank = computed(() =>
   (seasonLadder.value?.teams ?? []).findIndex(t => String(t.id) === String(teamId.value)) + 1
 );
 
-const ladderMmrHeader = computed(() => currentW3CSeason.value ? `MMR (S${currentW3CSeason.value})` : 'MMR');
-
-const ladderMmrDiff = (row) => (row.mmr?.current ?? 0) - (row.mmr?.start ?? 0);
+// A player still in his placement games has no MMR, so there is no span to subtract
+const ladderMmrDiff = (row) =>
+  row.mmr?.current != null && row.mmr?.start != null ? row.mmr.current - row.mmr.start : null;
 
 const fetchLadder = async () => {
   if (!seasonId.value) return;
@@ -640,6 +650,11 @@ const filteredAllPlayers = computed(() => {
 </script>
 
 <style scoped>
+/* A header that carries a tooltip, marked so the reader knows to hover */
+.noted {
+  border-bottom: 1px dotted currentColor;
+  cursor: help;
+}
 .player-row {
   cursor: pointer;
   transition: all 0.2s ease;
