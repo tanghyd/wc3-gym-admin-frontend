@@ -58,7 +58,6 @@
             v-if="tab === 'ladder' && fullPlayer"
             :player="fullPlayer"
             :seasonId="seasonId"
-            :w3cSeason="w3cSeason"
             @open-player="openPlayer"
           />
         </v-tabs-window-item>
