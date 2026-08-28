@@ -336,3 +336,8 @@ export function agoFromIso(iso) {
 export function localFromIso(iso) {
   return iso ? DateTime.fromISO(iso, { zone: 'utc' }).toLocal().toFormat('yyyy-LL-dd HH:mm') : 'never synced';
 }
+
+// The w3champions mark is a gold crown; this is the gold its favicon is drawn in,
+// so anything standing for W3Champions in this app is the same colour.
+export const W3C_GOLD = '#EBBC49';
+export const W3C_ICON = 'mdi-crown';

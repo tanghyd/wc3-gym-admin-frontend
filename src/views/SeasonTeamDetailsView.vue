@@ -113,7 +113,7 @@
     <!-- Ladder -->
     <v-card v-if="ladderTeam" elevation="2" class="mb-4">
       <v-card-title class="bg-primary d-flex align-center">
-        <v-icon class="mr-2">mdi-sword-cross</v-icon>
+        <v-icon class="mr-2" :color="W3C_GOLD">{{ W3C_ICON }}</v-icon>
         <span>W3C Ladder</span>
       </v-card-title>
       <v-toolbar flat height="auto">
@@ -344,7 +344,7 @@ import RaceIcon from '@/components/RaceIcon.vue';
 import AchievementChip from '@/components/AchievementChip.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import FilterPanel from '@/components/FilterPanel.vue';
-import { getW3CMMR, syncedAgo, syncedAt, agoFromIso, localFromIso } from '@/helpers/w3c-stats';
+import { getW3CMMR, syncedAgo, syncedAt, agoFromIso, localFromIso, W3C_GOLD, W3C_ICON } from '@/helpers/w3c-stats';
 import W3CSyncResultDialog from '@/components/W3CSyncResultDialog.vue';
 
 defineOptions({ name: 'SeasonTeamDetailsView' });
