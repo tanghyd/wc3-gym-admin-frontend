@@ -175,6 +175,16 @@
             fixed-header
             hover
           >
+            <template v-slot:[`header.points`]="{ column }">
+              <span class="noted">{{ column.title }}
+                <v-tooltip activator="parent" location="top" max-width="320">{{ SCORED_NOTE }}</v-tooltip>
+              </span>
+            </template>
+            <template v-slot:[`header.mmrDiff`]="{ column }">
+              <span class="noted">{{ column.title }}
+                <v-tooltip activator="parent" location="top" max-width="320">{{ MMR_NOTE }}</v-tooltip>
+              </span>
+            </template>
             <template v-slot:[`item.race`]="{ item }">
               <RaceIcon v-if="item.race" :raceIdentifier="item.race" />
             </template>
@@ -237,6 +247,7 @@ import { useLadderStore, useSeasonStore } from '@/stores';
 import { resolveCurrentSeasonId, resolveCurrentW3CSeason } from '@/helpers/current-season';
 import { agoFromIso, localFromIso } from '@/helpers/w3c-stats';
 import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
+import { SCORED_NOTE, MMR_NOTE } from '@/helpers/achievements';
 import FilterPanel from '@/components/FilterPanel.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import RaceIcon from '@/components/RaceIcon.vue';
@@ -393,6 +404,11 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* A header that carries a tooltip, marked so the reader knows to hover */
+.noted {
+  border-bottom: 1px dotted currentColor;
+  cursor: help;
+}
 .team-icon {
   width: 100%;
   height: 100%;
