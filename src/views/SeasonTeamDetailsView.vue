@@ -134,13 +134,13 @@
             <th style="width: 64px">Race</th>
             <th>Name</th>
             <th class="text-right">
-              <ColumnNote title="Ladder" :note="LADDER_NOTE" />
+              <ColumnNote title="Ladder Points" :note="LADDER_NOTE" />
             </th>
             <th>
               <ColumnNote title="Achievements" :note="ACHIEVEMENTS_NOTE" />
             </th>
             <th class="text-right">
-              <ColumnNote title="Points" :note="SCORED_NOTE" />
+              <ColumnNote title="Total Points" :note="SCORED_NOTE" />
             </th>
             <th class="text-right">W</th>
             <th class="text-right">L</th>
@@ -161,7 +161,7 @@
             </td>
             <td class="text-right">{{ row.ladder_points }}</td>
             <td>
-              <AchievementChip :badges="row.achievements" :show-points="false" />
+              <AchievementChip :badges="row.achievements" />
             </td>
             <td class="text-right font-weight-bold">{{ row.points }}</td>
             <td class="text-right text-green">{{ row.wins }}</td>
