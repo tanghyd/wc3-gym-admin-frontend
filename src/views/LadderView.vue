@@ -8,7 +8,7 @@
     <v-row class="mb-4">
       <v-col>
         <h1>
-          <v-icon class="mr-2">mdi-sword-cross</v-icon>
+          <v-icon class="mr-2" :color="W3C_GOLD">{{ W3C_ICON }}</v-icon>
           W3C Ladder
         </h1>
         <div class="text-caption text-medium-emphasis">Ranked 1v1 played on w3champions, not the GNL series</div>
@@ -67,7 +67,7 @@
     <!-- Empty State -->
     <v-card v-if="ladder && !ladder.total_games" elevation="2">
       <v-card-text class="text-center pa-8">
-        <v-icon size="64" color="grey-lighten-1">mdi-podium</v-icon>
+        <v-icon size="64" color="grey-lighten-1">{{ W3C_ICON }}</v-icon>
         <div class="text-h6 text-grey mt-4 mb-2">No ladder games synced for {{ seasonName }}</div>
         <p class="text-grey-darken-1 mb-4">Sync the season to fetch its W3Champions matches</p>
         <v-btn
@@ -250,7 +250,7 @@ import { storeToRefs } from 'pinia';
 import { RouterLink } from 'vue-router';
 import { useLadderStore, useSeasonStore } from '@/stores';
 import { resolveCurrentSeasonId, resolveCurrentW3CSeason } from '@/helpers/current-season';
-import { agoFromIso, localFromIso } from '@/helpers/w3c-stats';
+import { agoFromIso, localFromIso, W3C_GOLD, W3C_ICON } from '@/helpers/w3c-stats';
 import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
 import { SCORED_NOTE, MMR_NOTE, ACHIEVEMENTS_NOTE } from '@/helpers/achievements';
 import ColumnNote from '@/components/ColumnNote.vue';
