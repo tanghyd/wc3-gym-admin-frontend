@@ -61,7 +61,7 @@
     <!-- Versus race: five short rows side by side, not five full-width bars -->
     <v-card variant="outlined" class="mb-4">
       <v-card-title class="text-body-2">Versus race</v-card-title>
-      <v-card-text class="d-flex flex-wrap pt-0" style="gap: 20px">
+      <v-card-text class="race-grid pt-0">
         <div v-for="row in versusRaces" :key="row.code" class="d-flex align-center text-body-2" style="gap: 8px">
           <RaceIcon :raceIdentifier="row.code" />
           <span class="text-no-wrap">{{ row.name }}</span>
@@ -99,14 +99,22 @@
           <v-spacer />
           <span class="text-body-2 text-amber-darken-2 ml-3">+{{ badge.points }}</span>
         </div>
-        <div class="text-caption text-medium-emphasis mt-4 mb-1">Locked</div>
-        <div v-for="badge in locked" :key="badge.id" class="d-flex align-center badge-row text-medium-emphasis">
-          <v-icon size="small" class="mr-3">{{ badge.icon }}</v-icon>
-          <span class="text-body-2 mr-3">{{ badge.name }}</span>
-          <span class="text-caption">{{ badge.description }}</span>
-          <v-spacer />
-          <span class="text-body-2 ml-3">+{{ badge.points }}</span>
+        <div
+          class="text-caption text-medium-emphasis mt-4 mb-1 d-flex align-center locked-toggle"
+          @click="showLocked = !showLocked"
+        >
+          <span>Locked &middot; {{ locked.length }}</span>
+          <v-icon size="small" class="ml-1">{{ showLocked ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
         </div>
+        <template v-if="showLocked">
+          <div v-for="badge in locked" :key="badge.id" class="d-flex align-center badge-row text-medium-emphasis">
+            <v-icon size="small" class="mr-3">{{ badge.icon }}</v-icon>
+            <span class="text-body-2 mr-3">{{ badge.name }}</span>
+            <span class="text-caption">{{ badge.description }}</span>
+            <v-spacer />
+            <span class="text-body-2 ml-3">+{{ badge.points }}</span>
+          </div>
+        </template>
       </v-card-text>
     </v-card>
 
@@ -183,6 +191,7 @@ const isLoading = ref(false);
 const errorMessage = ref(null);
 const itemsPerPage = ref(10);
 const page = ref(1);
+const showLocked = ref(false);
 
 const scoped = computed(() => scope.value !== 'all');
 
@@ -214,15 +223,16 @@ const mmrRange = computed(() => {
   return mmr?.min != null && mmr?.max != null ? `${mmr.min} - ${mmr.max}` : '';
 });
 
-// The tile total also carries achievement points, so the ladder half is named when it differs
-const ladderPointsLine = computed(() => {
-  const ladder = (data.value?.wins ?? 0) * 3 + (data.value?.losses ?? 0);
-  return ladder === (data.value?.points ?? 0) ? 'ladder points' : `${ladder} ladder points`;
-});
-
 // The earned rules come with the player, the whole catalogue with the season
 const earned = computed(() => data.value?.achievements ?? []);
 const achievedPoints = computed(() => achievementPoints(earned.value));
+
+// The tile total is the two halves added, so the caption names both
+const ladderPointsLine = computed(() => {
+  const ladder = (data.value?.wins ?? 0) * 3 + (data.value?.losses ?? 0);
+  return `${ladder} ladder + ${achievedPoints.value} achievements`;
+});
+
 const locked = computed(() => {
   const won = new Set(earned.value.map(badge => badge.id));
   return (seasonLadder.value?.achievement_rules ?? []).filter(rule => !won.has(rule.id));
@@ -292,6 +302,24 @@ watch(() => [props.player?.id, props.seasonId], () => {
 .badge-row {
   padding: 4px 0;
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+.locked-toggle {
+  cursor: pointer;
+  width: fit-content;
+}
+.race-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 20px;
+}
+/* A column is narrower than an entry, so the bar and the rate take a second line */
+.race-grid > div {
+  flex-wrap: wrap;
+}
+@media (max-width: 900px) {
+  .race-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .opponent-link {
   cursor: pointer;
