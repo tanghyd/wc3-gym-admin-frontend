@@ -128,6 +128,10 @@
           </span>
         </v-row>
       </v-toolbar>
+      <!-- The two numbers this card shows are measured differently, so it says so where they start -->
+      <div class="text-caption text-medium-emphasis px-4 pb-2">
+        {{ SCORED_NOTE }} {{ MMR_NOTE }}
+      </div>
       <v-table density="compact">
         <thead>
           <tr>

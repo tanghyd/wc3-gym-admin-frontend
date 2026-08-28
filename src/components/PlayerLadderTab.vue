@@ -85,6 +85,11 @@
       </v-col>
     </v-row>
 
+    <!-- The tiles above are measured differently, so the tab says so once -->
+    <div class="text-caption text-medium-emphasis mb-3">
+      {{ SCORED_NOTE }} {{ MMR_NOTE }}
+    </div>
+
     <!-- Cumulative ladder points, the player against his team average -->
     <v-card v-if="chart" variant="outlined" class="mb-4">
       <v-card-title class="text-body-2 d-flex align-center">
