@@ -123,7 +123,7 @@
           <v-chip variant="outlined" size="small">{{ ladderTeam.games }} games</v-chip>
           <v-spacer />
           <span class="text-caption text-medium-emphasis">
-            {{ seasonLadder.season.synced_at ? `synced ${agoFromIso(seasonLadder.season.synced_at)}` : 'never synced' }}
+            {{ ladderSyncCaption }}
             <v-tooltip activator="parent" location="top">{{ localFromIso(seasonLadder.season.synced_at) }}</v-tooltip>
           </span>
         </v-row>
@@ -408,6 +408,15 @@ const seasonLadder = ref(null);
 const ladderTeam = computed(() =>
   (seasonLadder.value?.teams ?? []).find(t => String(t.id) === String(teamId.value)) ?? null
 );
+
+// The card is as synced as its least synced player, and says so when one is behind
+const ladderSyncCaption = computed(() => {
+  const players = ladderTeam.value?.players ?? [];
+  const synced = players.filter(player => player.synced_at).length;
+  if (!synced) return 'never synced';
+  if (synced < players.length) return `partly synced · ${synced} of ${players.length} players`;
+  return `synced ${agoFromIso(seasonLadder.value?.season?.synced_at)}`;
+});
 
 // The teams of the answer are ordered by ladder points
 const ladderRank = computed(() =>
