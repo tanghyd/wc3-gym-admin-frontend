@@ -208,7 +208,7 @@ import { computed, ref, watch } from 'vue';
 import { DateTime } from 'luxon';
 import { useLadderStore, useSeasonStore } from '@/stores';
 import RaceIcon from '@/components/RaceIcon.vue';
-import { achievementPoints, lockedAchievements } from '@/helpers/achievements';
+import { achievementPoints } from '@/helpers/achievements';
 
 const props = defineProps({
   player: { type: Object, default: null },
@@ -267,10 +267,13 @@ const ladderPointsLine = computed(() => {
   return ladder === (data.value?.points ?? 0) ? 'ladder points' : `${ladder} ladder points`;
 });
 
-// The earned rules come with the answer; the rest of the catalogue fills the locked list
+// The earned rules come with the player, the whole catalogue with the season
 const earned = computed(() => data.value?.achievements ?? []);
 const achievedPoints = computed(() => achievementPoints(earned.value));
-const locked = computed(() => lockedAchievements(earned.value));
+const locked = computed(() => {
+  const won = new Set(earned.value.map(badge => badge.id));
+  return (seasonLadder.value?.achievement_rules ?? []).filter(rule => !won.has(rule.id));
+});
 
 const versusRaces = computed(() => {
   const names = { HU: 'Human', OC: 'Orc', NE: 'Night Elf', UD: 'Undead', RANDOM: 'Random' };
