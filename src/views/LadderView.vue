@@ -179,16 +179,16 @@
             fixed-header
             hover
           >
-            <template v-slot:[`header.points`]="{ column, isSorted, toggleSort, getSortIcon }">
-              <ColumnNote :title="column.title" :note="SCORED_NOTE" sortable
-                :sort-icon="isSorted(column) ? getSortIcon(column) : null" @sort="toggleSort(column)" />
+            <template v-slot:[`header.points`]="{ column, isSorted, getSortIcon }">
+              <ColumnNote :title="column.title" :note="SCORED_NOTE"
+                :sort-icon="isSorted(column) ? getSortIcon(column) : null" />
             </template>
             <template v-slot:[`header.achievements`]="{ column }">
               <ColumnNote :title="column.title" :note="ACHIEVEMENTS_NOTE" />
             </template>
-            <template v-slot:[`header.mmrDiff`]="{ column, isSorted, toggleSort, getSortIcon }">
-              <ColumnNote :title="column.title" :note="MMR_NOTE" sortable
-                :sort-icon="isSorted(column) ? getSortIcon(column) : null" @sort="toggleSort(column)" />
+            <template v-slot:[`header.mmrDiff`]="{ column, isSorted, getSortIcon }">
+              <ColumnNote :title="column.title" :note="MMR_NOTE"
+                :sort-icon="isSorted(column) ? getSortIcon(column) : null" />
             </template>
             <template v-slot:[`item.race`]="{ item }">
               <RaceIcon v-if="item.race" :raceIdentifier="item.race" />

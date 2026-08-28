@@ -1,11 +1,15 @@
-<!-- A column heading that carries a help note, and keeps its sort control when the table has one -->
+<!-- A column heading that carries a help note.
+
+     The sort click belongs to the <th> Vuetify already binds it on, so this
+     only draws the arrow it is handed; handling the click here as well would
+     toggle the sort twice. -->
 <template>
   <span class="d-inline-flex align-center">
-    <span :class="sortable ? 'sort-label' : ''" @click="sortable && $emit('sort')">
+    <span>
       {{ title }}
-      <v-icon v-if="sortable && sortIcon" size="x-small" class="ml-1">{{ sortIcon }}</v-icon>
+      <v-icon v-if="sortIcon" size="x-small" class="ml-1">{{ sortIcon }}</v-icon>
     </span>
-    <span class="note-icon ml-1">
+    <span class="note-icon ml-1" @click.stop>
       <v-icon size="x-small">mdi-help-circle-outline</v-icon>
       <v-tooltip activator="parent" location="top" max-width="320">{{ note }}</v-tooltip>
     </span>
@@ -16,17 +20,11 @@
 defineProps({
   title: { type: String, required: true },
   note: { type: String, required: true },
-  // Vuetify hands the header slot its own sort control; a plain table has none
-  sortable: { type: Boolean, default: false },
   sortIcon: { type: String, default: null },
 });
-defineEmits(['sort']);
 </script>
 
 <style scoped>
-.sort-label {
-  cursor: pointer;
-}
 .note-icon {
   cursor: help;
   opacity: 0.6;
