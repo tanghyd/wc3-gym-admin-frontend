@@ -726,37 +726,15 @@ const heatLegend = computed(() => {
     }));
 });
 
-// One count per season day, summed over the players; a GNL vs GNL match counts for both
-const ladderDays = computed(() => {
-    const season = ladder.value?.season;
-    if (!season?.start_date) return [];
-    const counts = new Map();
-    for (const team of ladder.value.teams ?? []) {
-        for (const player of team.players ?? []) {
-            for (const day of player.per_day ?? []) {
-                counts.set(day.d, (counts.get(day.d) ?? 0) + day.w + day.l);
-            }
-        }
-    }
-    if (!counts.size) return [];
-    const played = [...counts.keys()].sort();
-    const last = played[played.length - 1];
-    const end = season.end_date && season.end_date < last ? season.end_date : last;
-    const days = [];
-    const stop = Date.parse(`${end}T00:00:00Z`);
-    for (let at = Date.parse(`${season.start_date}T00:00:00Z`); at <= stop; at += 86400000) {
-        const iso = new Date(at).toISOString().slice(0, 10);
-        days.push({ d: iso, games: counts.get(iso) ?? 0 });
-    }
-    return days;
-});
+// One entry per season day, as the answer serves it, and they add up to total_games
+const ladderDays = computed(() => ladder.value?.per_day ?? []);
 
-const dayMax = computed(() => Math.max(1, ...ladderDays.value.map(day => day.games)));
+const dayMax = computed(() => Math.max(1, ...ladderDays.value.map(day => day.g)));
 
 const dayBars = computed(() => ladderDays.value.map(day => ({
     d: day.d,
-    height: `${Math.max(2, Math.round((day.games / dayMax.value) * 100))}%`,
-    title: `${monthDay(day.d)} \u00b7 ${day.games} games`,
+    height: `${Math.max(2, Math.round((day.g / dayMax.value) * 100))}%`,
+    title: `${monthDay(day.d)} \u00b7 ${day.g} games`,
 })));
 
 const dayTicks = computed(() => {
