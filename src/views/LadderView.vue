@@ -207,8 +207,7 @@
               </span>
             </template>
             <template v-slot:[`item.achievements`]="{ item }">
-              <span v-if="item.achievements.length">{{ item.achievements.length }}</span>
-              <span v-else class="text-medium-emphasis">—</span>
+              <AchievementChip :badges="item.achievements" />
             </template>
           </v-data-table>
         </v-card-text>
@@ -240,6 +239,7 @@ import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
 import FilterPanel from '@/components/FilterPanel.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import RaceIcon from '@/components/RaceIcon.vue';
+import AchievementChip from '@/components/AchievementChip.vue';
 import W3CSyncResultDialog from '@/components/W3CSyncResultDialog.vue';
 
 const ladderStore = useLadderStore();

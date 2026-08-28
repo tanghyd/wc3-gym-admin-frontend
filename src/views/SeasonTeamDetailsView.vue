@@ -157,8 +157,7 @@
               {{ ladderMmrDiff(row) > 0 ? `+${ladderMmrDiff(row)}` : ladderMmrDiff(row) }}
             </td>
             <td>
-              <span v-if="row.achievements.length">{{ row.achievements.length }}</span>
-              <span v-else class="text-medium-emphasis">&#8212;</span>
+              <AchievementChip :badges="row.achievements" />
             </td>
           </tr>
         </tbody>
@@ -335,6 +334,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import FlagIcon from '@/components/FlagIcon.vue';
 import RaceIcon from '@/components/RaceIcon.vue';
+import AchievementChip from '@/components/AchievementChip.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import FilterPanel from '@/components/FilterPanel.vue';
 import { getW3CMMR, syncedAgo, syncedAt, agoFromIso, localFromIso } from '@/helpers/w3c-stats';
