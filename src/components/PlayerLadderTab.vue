@@ -30,115 +30,56 @@
       </v-col>
     </v-row>
 
-    <!-- Stat tiles -->
-    <v-row class="mb-2">
-      <v-col v-if="scoped" cols="12" sm="3">
-        <v-card variant="outlined">
-          <v-card-title class="bg-primary text-body-2 d-flex align-center py-1">
-            <v-icon size="small" class="mr-2">mdi-trophy</v-icon>
-            <span class="noted">Points
-              <v-tooltip activator="parent" location="top" max-width="320">{{ SCORED_NOTE }}</v-tooltip>
-            </span>
-          </v-card-title>
-          <v-card-text class="text-center">
-            <div class="text-h5">{{ data?.points ?? 0 }}</div>
-            <div class="text-caption text-medium-emphasis">{{ ladderPointsLine }}</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="3">
-        <v-card variant="outlined">
-          <v-card-title class="bg-primary text-body-2 d-flex align-center py-1">
-            <v-icon size="small" class="mr-2">mdi-trending-up</v-icon>Wins
-          </v-card-title>
-          <v-card-text class="text-center">
-            <div class="text-h5 text-green">{{ data?.wins ?? 0 }}</div>
-            <div class="text-caption text-medium-emphasis">{{ winrate }}</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="3">
-        <v-card variant="outlined">
-          <v-card-title class="bg-primary text-body-2 d-flex align-center py-1">
-            <v-icon size="small" class="mr-2">mdi-trending-down</v-icon>Losses
-          </v-card-title>
-          <v-card-text class="text-center">
-            <div class="text-h5 text-red">{{ data?.losses ?? 0 }}</div>
-            <div class="text-caption text-medium-emphasis">{{ data?.games ?? 0 }} games</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="3">
-        <v-card variant="outlined">
-          <v-card-title class="bg-primary text-body-2 d-flex align-center py-1">
-            <v-icon size="small" class="mr-2">mdi-star</v-icon>
-            <span class="noted">MMR
-              <v-tooltip activator="parent" location="top" max-width="320">{{ MMR_NOTE }}</v-tooltip>
-            </span>
-          </v-card-title>
-          <v-card-text class="text-center">
-            <div class="text-h5">{{ data?.mmr?.current ?? '—' }}</div>
-            <div class="text-caption text-medium-emphasis">{{ mmrRange }}</div>
-            <a v-if="player?.battleTag" :href="w3cStatsUrl" target="_blank" class="text-caption">W3Champions</a>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- The tiles above are measured differently, so the tab says so once -->
-    <div class="text-caption text-medium-emphasis mb-3">
-      {{ SCORED_NOTE }} {{ MMR_NOTE }}
-    </div>
-
-    <!-- Cumulative ladder points, the player against his team average -->
-    <v-card v-if="chart" variant="outlined" class="mb-4">
-      <v-card-title class="text-body-2 d-flex align-center">
-        <span>Ladder points</span>
+    <!-- One row of figures rather than four cards; the tab has a lot below it -->
+    <v-card variant="outlined" class="mb-4">
+      <v-card-text class="d-flex flex-wrap align-center py-2" style="gap: 28px">
+        <div v-if="scoped">
+          <ColumnNote title="Points" :note="SCORED_NOTE" class="text-caption text-medium-emphasis" />
+          <div class="text-h6">{{ data?.points ?? 0 }} <span class="text-caption text-medium-emphasis">{{ ladderPointsLine }}</span></div>
+        </div>
+        <div>
+          <div class="text-caption text-medium-emphasis">Record</div>
+          <div class="text-h6">
+            <span class="text-green">{{ data?.wins ?? 0 }}</span>
+            <span class="text-medium-emphasis"> - </span>
+            <span class="text-red">{{ data?.losses ?? 0 }}</span>
+            <span class="text-caption text-medium-emphasis"> {{ winrate }} of {{ data?.games ?? 0 }} games</span>
+          </div>
+        </div>
+        <div>
+          <ColumnNote title="MMR" :note="MMR_NOTE" class="text-caption text-medium-emphasis" />
+          <div class="text-h6">
+            {{ data?.mmr?.current ?? '—' }}
+            <span class="text-caption text-medium-emphasis">{{ mmrRange }}</span>
+          </div>
+        </div>
         <v-spacer />
-        <span class="d-inline-flex align-center text-caption mr-4">
-          <span class="legend-swatch legend-player mr-2"></span>Player
-        </span>
-        <span class="d-inline-flex align-center text-caption">
-          <span class="legend-swatch legend-team mr-2"></span>Team average
-        </span>
-      </v-card-title>
-      <v-card-text class="pt-0">
-        <svg :viewBox="`0 0 ${chart.w} ${chart.h}`" class="ladder-chart">
-          <line :x1="chart.padL" :y1="chart.topY" :x2="chart.right" :y2="chart.topY" stroke="#EEEEEE" stroke-width="1" />
-          <line :x1="chart.padL" :y1="chart.baseY" :x2="chart.right" :y2="chart.baseY" stroke="#EEEEEE" stroke-width="1" />
-          <text :x="chart.padL - 4" :y="chart.topY + 4" text-anchor="end" font-size="11" fill="rgba(0,0,0,0.6)">{{ chart.total }}</text>
-          <text :x="chart.padL - 4" :y="chart.baseY + 4" text-anchor="end" font-size="11" fill="rgba(0,0,0,0.6)">0</text>
-          <polyline fill="none" stroke="rgba(24,103,192,0.30)" stroke-width="2" :points="chart.avgPoly" />
-          <polyline fill="none" stroke="#1867C0" stroke-width="2" :points="chart.poly" />
-          <circle :cx="chart.dotX" :cy="chart.avgDotY" r="3.5" fill="rgba(24,103,192,0.30)" />
-          <circle :cx="chart.dotX" :cy="chart.dotY" r="3.5" fill="#1867C0" />
-          <template v-for="tick in chart.ticks" :key="tick.label">
-            <line :x1="tick.x" :y1="chart.baseY" :x2="tick.x" :y2="chart.baseY + 4" stroke="rgba(0,0,0,0.24)" stroke-width="1" />
-            <text :x="tick.x" :y="chart.h - 4" text-anchor="middle" font-size="11" fill="rgba(0,0,0,0.6)">{{ tick.label }}</text>
-          </template>
-        </svg>
+        <a v-if="player?.battleTag" :href="w3cStatsUrl" target="_blank" class="text-caption">W3Champions</a>
       </v-card-text>
     </v-card>
 
-    <!-- Versus race -->
+    <!-- Versus race: five short rows side by side, not five full-width bars -->
     <v-card variant="outlined" class="mb-4">
       <v-card-title class="text-body-2">Versus race</v-card-title>
-      <v-card-text class="pt-0">
-        <div v-for="row in versusRaces" :key="row.code" class="d-flex align-center text-body-2 my-2" style="gap: 10px">
+      <v-card-text class="d-flex flex-wrap pt-0" style="gap: 20px">
+        <div v-for="row in versusRaces" :key="row.code" class="d-flex align-center text-body-2" style="gap: 8px">
           <RaceIcon :raceIdentifier="row.code" />
-          <span class="text-no-wrap" style="width: 96px">{{ row.name }}</span>
+          <span class="text-no-wrap">{{ row.name }}</span>
+          <span class="text-no-wrap">
+            <span class="text-green">{{ row.w }}</span>
+            <span class="text-medium-emphasis"> - </span>
+            <span class="text-red">{{ row.l }}</span>
+          </span>
           <v-progress-linear
             :model-value="row.rate"
             color="success"
             bg-color="error"
             :bg-opacity="1"
-            height="12"
+            height="8"
             rounded
-            class="flex-grow-1"
+            style="width: 56px"
           />
-          <span class="text-right text-no-wrap" style="width: 76px">{{ row.w }} - {{ row.l }}</span>
-          <span class="text-right" style="width: 50px">{{ row.rate }}%</span>
-          <span class="text-right text-medium-emphasis" style="width: 50px">{{ row.total }}</span>
+          <span class="text-medium-emphasis text-no-wrap">{{ row.rate }}%</span>
         </div>
       </v-card-text>
     </v-card>
@@ -169,10 +110,11 @@
       </v-card-text>
     </v-card>
 
-    <!-- Matches, one page of the route at a time -->
+    <!-- Ladder matches, one page of the route at a time -->
     <v-card variant="outlined">
       <v-card-title class="text-body-2 d-flex align-center">
-        <span>Matches</span>
+        <span>W3C ladder matches</span>
+        <span class="text-caption text-medium-emphasis ml-2">ranked 1v1, not GNL series</span>
         <v-spacer />
         <span class="text-caption text-medium-emphasis">{{ data?.games ?? 0 }}</span>
       </v-card-title>
@@ -221,6 +163,7 @@ import { DateTime } from 'luxon';
 import { useLadderStore, useSeasonStore } from '@/stores';
 import RaceIcon from '@/components/RaceIcon.vue';
 import { achievementPoints, SCORED_NOTE, MMR_NOTE } from '@/helpers/achievements';
+import ColumnNote from '@/components/ColumnNote.vue';
 
 const props = defineProps({
   player: { type: Object, default: null },
@@ -301,74 +244,6 @@ const teamOf = (userId) => {
   return team?.name ?? null;
 };
 
-const teammates = computed(() =>
-  (seasonLadder.value?.teams ?? []).find(t => t.players.some(p => p.id === props.player?.id))?.players ?? []
-);
-
-// Cumulative ladder points per season day, the player against the mean of his team
-const chart = computed(() => {
-  if (!scoped.value || !data.value || !seasonLadder.value) return null;
-  const axis = chartAxis();
-  if (axis.length < 2) return null;
-
-  const runTotal = (perDay) => {
-    const byDate = new Map((perDay ?? []).map(day => [day.d, day]));
-    let sum = 0;
-    return axis.map(date => {
-      const day = byDate.get(date);
-      if (day) sum += day.w * 3 + day.l;
-      return sum;
-    });
-  };
-
-  const mine = runTotal(data.value.per_day);
-  const mateRuns = teammates.value.map(mate => runTotal(mate.per_day));
-  const teamAvg = axis.map((_, i) =>
-    mateRuns.length ? mateRuns.reduce((sum, run) => sum + run[i], 0) / mateRuns.length : 0
-  );
-
-  const w = 900, h = 150, padL = 46, padR = 10, padT = 12, padB = 22;
-  const total = mine[mine.length - 1];
-  const avgEnd = teamAvg[teamAvg.length - 1];
-  const top = Math.max(1, total, avgEnd);
-  const px = (i) => padL + (i * (w - padL - padR)) / (axis.length - 1);
-  const py = (v) => padT + ((top - v) / top) * (h - padT - padB);
-  const line = (values) => values.map((v, i) => `${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(' ');
-
-  const ticks = [];
-  for (let i = 0; i * 7 < axis.length; i++) {
-    ticks.push({ x: px(i * 7).toFixed(1), label: `Week ${i + 1}` });
-  }
-
-  return {
-    w, h, padL, right: w - padR, baseY: h - padB, total: Math.round(total),
-    poly: line(mine), avgPoly: line(teamAvg),
-    dotX: px(axis.length - 1).toFixed(1), dotY: py(total).toFixed(1), avgDotY: py(avgEnd).toFixed(1),
-    topY: py(total).toFixed(1), ticks,
-  };
-});
-
-// Every day of the season up to the last one anyone on the team played, so the two lines share an axis
-function chartAxis() {
-  const season = seasonLadder.value?.season;
-  if (!season?.start_date) return [];
-  const played = teammates.value
-    .flatMap(mate => (mate.per_day ?? []).map(day => day.d))
-    .concat((data.value?.per_day ?? []).map(day => day.d));
-  if (!played.length) return [];
-  const last = played.reduce((a, b) => (a > b ? a : b));
-  const end = season.end_date && season.end_date < last ? season.end_date : last;
-
-  const days = [];
-  let at = DateTime.fromISO(season.start_date, { zone: 'utc' });
-  const stop = DateTime.fromISO(end, { zone: 'utc' });
-  while (at <= stop && days.length < 400) {
-    days.push(at.toISODate());
-    at = at.plus({ days: 1 });
-  }
-  return days;
-}
-
 const matchDate = (iso) => DateTime.fromISO(iso, { zone: 'utc' }).toFormat('yyyy-LL-dd HH:mm');
 const duration = (seconds) => {
   const total = seconds ?? 0;
@@ -413,31 +288,9 @@ watch(() => [props.player?.id, props.seasonId], () => {
 </script>
 
 <style scoped>
-/* A tile heading that carries a tooltip, marked so the reader knows to hover */
-.noted {
-  border-bottom: 1px dotted currentColor;
-  cursor: help;
-}
 .badge-row {
   padding: 4px 0;
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-.ladder-chart {
-  display: block;
-  width: 100%;
-  max-width: 900px;
-  height: auto;
-}
-.legend-swatch {
-  width: 16px;
-  height: 3px;
-  display: inline-block;
-}
-.legend-player {
-  background: #1867C0;
-}
-.legend-team {
-  background: rgba(24, 103, 192, 0.3);
 }
 .opponent-link {
   cursor: pointer;

@@ -113,12 +113,12 @@
     <!-- Ladder -->
     <v-card v-if="ladderTeam" elevation="2" class="mb-4">
       <v-card-title class="bg-primary d-flex align-center">
-        <v-icon class="mr-2">mdi-podium</v-icon>
-        <span>Ladder</span>
+        <v-icon class="mr-2">mdi-sword-cross</v-icon>
+        <span>W3C Ladder</span>
       </v-card-title>
       <v-toolbar flat height="auto">
         <v-row align="center" class="flex-wrap ma-0 pa-2" style="gap: 8px">
-          <v-chip variant="outlined" size="small">{{ ladderTeam.points }} ladder points</v-chip>
+          <v-chip variant="outlined" size="small">{{ ladderTeam.points }} points</v-chip>
           <v-chip variant="outlined" size="small">Rank {{ ladderRank }}</v-chip>
           <v-chip variant="outlined" size="small">{{ ladderTeam.games }} games</v-chip>
           <v-spacer />
@@ -128,29 +128,23 @@
           </span>
         </v-row>
       </v-toolbar>
-      <!-- The two numbers this card shows are measured differently, so it says so where they start -->
-      <div class="text-caption text-medium-emphasis px-4 pb-2">
-        {{ SCORED_NOTE }} {{ MMR_NOTE }}
-      </div>
       <v-table density="compact">
         <thead>
           <tr>
-            <th>Main Race</th>
+            <th style="width: 64px">Race</th>
             <th>Name</th>
             <th class="text-right">
-              <span class="noted">Points
-                <v-tooltip activator="parent" location="top" max-width="320">{{ SCORED_NOTE }}</v-tooltip>
-              </span>
+              <ColumnNote title="Points" :note="SCORED_NOTE" />
+            </th>
+            <th>
+              <ColumnNote title="Achievements" :note="ACHIEVEMENTS_NOTE" />
             </th>
             <th class="text-right">W</th>
             <th class="text-right">L</th>
             <th class="text-right">MMR</th>
             <th class="text-right">
-              <span class="noted">MMR +/-
-                <v-tooltip activator="parent" location="top" max-width="320">{{ MMR_NOTE }}</v-tooltip>
-              </span>
+              <ColumnNote title="MMR +/-" :note="MMR_NOTE" />
             </th>
-            <th>Achievements</th>
           </tr>
         </thead>
         <tbody>
@@ -159,8 +153,9 @@
             <td>
               <span class="player-name-link" @click.stop="showStats(row)">{{ row.name }}</span>
             </td>
-            <td class="text-right">
-              <v-chip color="primary" size="small" class="font-weight-bold">{{ row.points }}</v-chip>
+            <td class="text-right font-weight-bold">{{ row.points }}</td>
+            <td>
+              <AchievementChip :badges="row.achievements" />
             </td>
             <td class="text-right text-green">{{ row.wins }}</td>
             <td class="text-right text-red">{{ row.losses }}</td>
@@ -168,9 +163,6 @@
             <td class="text-right" :class="ladderMmrDiff(row) > 0 ? 'text-green' : ladderMmrDiff(row) < 0 ? 'text-red' : ''">
               <span v-if="ladderMmrDiff(row) == null">&mdash;</span>
               <span v-else>{{ ladderMmrDiff(row) > 0 ? `+${ladderMmrDiff(row)}` : ladderMmrDiff(row) }}</span>
-            </td>
-            <td>
-              <AchievementChip :badges="row.achievements" />
             </td>
           </tr>
         </tbody>
@@ -343,7 +335,8 @@ import '@/assets/base.css';
 import { useRouter } from 'vue-router';
 import { useTeamStore, usePlayerStore, useLadderStore } from '@/stores';
 import { resolveCurrentW3CSeason } from '@/helpers/current-season';
-import { SCORED_NOTE, MMR_NOTE } from '@/helpers/achievements';
+import { SCORED_NOTE, MMR_NOTE, ACHIEVEMENTS_NOTE } from '@/helpers/achievements';
+import ColumnNote from '@/components/ColumnNote.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import FlagIcon from '@/components/FlagIcon.vue';
@@ -654,11 +647,6 @@ const filteredAllPlayers = computed(() => {
 </script>
 
 <style scoped>
-/* A header that carries a tooltip, marked so the reader knows to hover */
-.noted {
-  border-bottom: 1px dotted currentColor;
-  cursor: help;
-}
 .player-row {
   cursor: pointer;
   transition: all 0.2s ease;

@@ -8,9 +8,10 @@
     <v-row class="mb-4">
       <v-col>
         <h1>
-          <v-icon class="mr-2">mdi-podium</v-icon>
-          Ladder
+          <v-icon class="mr-2">mdi-sword-cross</v-icon>
+          W3C Ladder
         </h1>
+        <div class="text-caption text-medium-emphasis">Ranked 1v1 played on w3champions, not the GNL series</div>
       </v-col>
     </v-row>
 
@@ -91,23 +92,17 @@
         </v-card-title>
         <v-toolbar flat height="auto">
           <v-row align="center" class="flex-wrap ma-0 pa-2" style="gap: 8px">
-            <v-chip variant="outlined" size="small">{{ ladder.total_games }} games</v-chip>
-            <v-chip variant="outlined" size="small">{{ seasonPoints }} ladder points</v-chip>
-            <v-chip variant="outlined" size="small">{{ seasonPlayers }} players</v-chip>
-            <v-spacer />
             <span class="text-caption text-medium-emphasis">{{ seasonDates }}</span>
+            <v-spacer />
           </v-row>
         </v-toolbar>
-        <!-- The two numbers this page shows are measured differently, so it says so where they start -->
-        <div class="text-caption text-medium-emphasis px-4 pb-2">
-          {{ SCORED_NOTE }} {{ MMR_NOTE }}
-        </div>
         <v-table density="comfortable" class="standings-table">
           <thead>
             <tr>
-              <th class="text-center" style="width:56px">#</th>
               <th>Team</th>
-              <th class="text-center">Ladder Points</th>
+              <th class="text-center">
+                <ColumnNote title="Points" :note="SCORED_NOTE" />
+              </th>
               <th class="text-center">Games</th>
               <th class="text-center">Players</th>
             </tr>
@@ -118,22 +113,27 @@
               :key="team.id"
               :class="idx === 0 ? 'standings-first' : ''"
             >
-              <td class="text-center text-medium-emphasis">{{ idx + 1 }}</td>
               <td>
                 <div class="d-flex align-center">
                   <v-avatar size="24" rounded="sm" class="mr-2" style="flex-shrink:0">
                     <img class="team-icon" :src="teamImageUrl(team.id)" @error="showDefaultTeamImage">
                   </v-avatar>
-                  <RouterLink :to="`/team/${team.id}/season/${selectedSeasonId}`">{{ team.name }}</RouterLink>
+                  <RouterLink :to="`/team/${team.id}/season/${selectedSeasonId}`">{{ team.long_name || team.name }}</RouterLink>
                 </div>
               </td>
-              <td class="text-center">
-                <v-chip color="primary" size="small" class="font-weight-bold">{{ team.points }}</v-chip>
-              </td>
+              <td class="text-center font-weight-bold">{{ team.points }}</td>
               <td class="text-center">{{ team.games }}</td>
               <td class="text-center">{{ team.players.length }}</td>
             </tr>
           </tbody>
+          <tfoot>
+            <tr class="standings-total">
+              <td class="text-medium-emphasis">{{ ladder.teams.length }} teams</td>
+              <td class="text-center font-weight-bold">{{ seasonPoints }}</td>
+              <td class="text-center">{{ ladder.total_games }}</td>
+              <td class="text-center">{{ seasonPlayers }}</td>
+            </tr>
+          </tfoot>
         </v-table>
       </v-card>
 
@@ -179,15 +179,16 @@
             fixed-header
             hover
           >
-            <template v-slot:[`header.points`]="{ column }">
-              <span class="noted">{{ column.title }}
-                <v-tooltip activator="parent" location="top" max-width="320">{{ SCORED_NOTE }}</v-tooltip>
-              </span>
+            <template v-slot:[`header.points`]="{ column, isSorted, getSortIcon }">
+              <ColumnNote :title="column.title" :note="SCORED_NOTE"
+                :sort-icon="isSorted(column) ? getSortIcon(column) : null" />
             </template>
-            <template v-slot:[`header.mmrDiff`]="{ column }">
-              <span class="noted">{{ column.title }}
-                <v-tooltip activator="parent" location="top" max-width="320">{{ MMR_NOTE }}</v-tooltip>
-              </span>
+            <template v-slot:[`header.achievements`]="{ column }">
+              <ColumnNote :title="column.title" :note="ACHIEVEMENTS_NOTE" />
+            </template>
+            <template v-slot:[`header.mmrDiff`]="{ column, isSorted, getSortIcon }">
+              <ColumnNote :title="column.title" :note="MMR_NOTE"
+                :sort-icon="isSorted(column) ? getSortIcon(column) : null" />
             </template>
             <template v-slot:[`item.race`]="{ item }">
               <RaceIcon v-if="item.race" :raceIdentifier="item.race" />
@@ -206,7 +207,7 @@
               </div>
             </template>
             <template v-slot:[`item.points`]="{ item }">
-              <v-chip color="primary" size="small" class="font-weight-bold">{{ item.points }}</v-chip>
+              <span class="font-weight-bold">{{ item.points }}</span>
             </template>
             <template v-slot:[`item.wins`]="{ item }">
               <span class="text-green">{{ item.wins }}</span>
@@ -251,7 +252,8 @@ import { useLadderStore, useSeasonStore } from '@/stores';
 import { resolveCurrentSeasonId, resolveCurrentW3CSeason } from '@/helpers/current-season';
 import { agoFromIso, localFromIso } from '@/helpers/w3c-stats';
 import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
-import { SCORED_NOTE, MMR_NOTE } from '@/helpers/achievements';
+import { SCORED_NOTE, MMR_NOTE, ACHIEVEMENTS_NOTE } from '@/helpers/achievements';
+import ColumnNote from '@/components/ColumnNote.vue';
 import FilterPanel from '@/components/FilterPanel.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import RaceIcon from '@/components/RaceIcon.vue';
@@ -280,16 +282,17 @@ const syncEntries = ref([]);
 const showPlayerDetails = ref(false);
 const playerDetails = ref(null);
 
+// Points and Achievements sit together because the first is the sum of the second and the ladder
 const tableHeader = computed(() => [
-  { title: 'Main Race', key: 'race', sortable: true },
+  { title: 'Race', key: 'race', sortable: true, width: 64 },
   { title: 'Name', key: 'name', sortable: true },
   { title: 'Team', key: 'teamName', sortable: true },
   { title: 'Points', key: 'points', sortable: true },
+  { title: 'Achievements', key: 'achievements', sortable: false },
   { title: 'Wins', key: 'wins', sortable: true },
   { title: 'Losses', key: 'losses', sortable: true },
   { title: 'MMR', key: 'mmr', sortable: true },
   { title: 'MMR +/-', key: 'mmrDiff', sortable: true },
-  { title: 'Achievements', key: 'achievements', sortable: false },
 ]);
 
 const seasonName = computed(() =>
@@ -408,10 +411,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* A header that carries a tooltip, marked so the reader knows to hover */
-.noted {
-  border-bottom: 1px dotted currentColor;
-  cursor: help;
+/* The season totals, under the column each one belongs to */
+.standings-total td {
+  border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 .team-icon {
   width: 100%;
