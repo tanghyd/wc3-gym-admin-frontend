@@ -78,6 +78,9 @@ const showNavLinks = () => {
                             <v-list-item>
                                 <RouterLink to="/report">Season Report</RouterLink>
                             </v-list-item>
+                            <v-list-item>
+                                <RouterLink to="/ladder">Ladder</RouterLink>
+                            </v-list-item>
                         </v-list>
                     </v-menu>
                     <v-menu offset-y>

@@ -110,6 +110,61 @@
       </v-card-text>
     </v-card>
 
+    <!-- Ladder -->
+    <v-card v-if="ladderTeam" elevation="2" class="mb-4">
+      <v-card-title class="bg-primary d-flex align-center">
+        <v-icon class="mr-2">mdi-podium</v-icon>
+        <span>Ladder</span>
+      </v-card-title>
+      <v-toolbar flat height="auto">
+        <v-row align="center" class="flex-wrap ma-0 pa-2" style="gap: 8px">
+          <v-chip variant="outlined" size="small">{{ ladderTeam.points }} ladder points</v-chip>
+          <v-chip variant="outlined" size="small">Rank {{ ladderRank }}</v-chip>
+          <v-chip variant="outlined" size="small">{{ ladderTeam.games }} games</v-chip>
+          <v-spacer />
+          <span class="text-caption text-medium-emphasis">
+            {{ seasonLadder.season.synced_at ? `synced ${agoFromIso(seasonLadder.season.synced_at)}` : 'never synced' }}
+            <v-tooltip activator="parent" location="top">{{ localFromIso(seasonLadder.season.synced_at) }}</v-tooltip>
+          </span>
+        </v-row>
+      </v-toolbar>
+      <v-table density="compact">
+        <thead>
+          <tr>
+            <th>Main Race</th>
+            <th>Name</th>
+            <th class="text-right">Points</th>
+            <th class="text-right">W</th>
+            <th class="text-right">L</th>
+            <th class="text-right">{{ ladderMmrHeader }}</th>
+            <th class="text-right">MMR +/-</th>
+            <th>Achievements</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in ladderTeam.players" :key="row.id">
+            <td><RaceIcon v-if="row.race" :raceIdentifier="row.race" /></td>
+            <td>
+              <span class="player-name-link" @click.stop="showStats(row)">{{ row.name }}</span>
+            </td>
+            <td class="text-right">
+              <v-chip color="primary" size="small" class="font-weight-bold">{{ row.points }}</v-chip>
+            </td>
+            <td class="text-right text-green">{{ row.wins }}</td>
+            <td class="text-right text-red">{{ row.losses }}</td>
+            <td class="text-right">{{ row.mmr?.current || '\u2014' }}</td>
+            <td class="text-right" :class="ladderMmrDiff(row) > 0 ? 'text-green' : ladderMmrDiff(row) < 0 ? 'text-red' : ''">
+              {{ ladderMmrDiff(row) > 0 ? `+${ladderMmrDiff(row)}` : ladderMmrDiff(row) }}
+            </td>
+            <td>
+              <span v-if="row.achievements.length">{{ row.achievements.length }}</span>
+              <span v-else class="text-medium-emphasis">&#8212;</span>
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
+    </v-card>
+
     <!-- Players -->
     <v-card elevation="2">
       <v-card-title class="bg-primary d-flex align-center">
@@ -263,6 +318,7 @@
     v-model="showPlayerDetails" 
     :player="playerDetails" 
     :seasonId="seasonId"
+    :w3cSeason="currentW3CSeason"
   />
 
   <W3CSyncResultDialog v-model="syncDialog" :entries="syncEntries" />
@@ -273,7 +329,7 @@
 import RowActions from '@/components/RowActions.vue';
 import '@/assets/base.css';
 import { useRouter } from 'vue-router';
-import { useTeamStore, usePlayerStore } from '@/stores';
+import { useTeamStore, usePlayerStore, useLadderStore } from '@/stores';
 import { resolveCurrentW3CSeason } from '@/helpers/current-season';
 import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -281,7 +337,7 @@ import FlagIcon from '@/components/FlagIcon.vue';
 import RaceIcon from '@/components/RaceIcon.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import FilterPanel from '@/components/FilterPanel.vue';
-import { getW3CMMR, syncedAgo, syncedAt } from '@/helpers/w3c-stats';
+import { getW3CMMR, syncedAgo, syncedAt, agoFromIso, localFromIso } from '@/helpers/w3c-stats';
 import W3CSyncResultDialog from '@/components/W3CSyncResultDialog.vue';
 
 defineOptions({ name: 'SeasonTeamDetailsView' });
@@ -290,6 +346,7 @@ defineOptions({ name: 'SeasonTeamDetailsView' });
 const router = useRouter();
 const teamStore = useTeamStore();
 const playerStore = usePlayerStore();
+const ladderStore = useLadderStore();
 
 // Route params
 const teamId = computed(() => router.currentRoute.value.params.id);
@@ -329,6 +386,32 @@ const allAvailableUsers = ref([]);
 // Player details state
 const showPlayerDetails = ref(false);
 const playerDetails = ref(null);
+
+// Ladder card state
+const seasonLadder = ref(null);
+
+const ladderTeam = computed(() =>
+  (seasonLadder.value?.teams ?? []).find(t => String(t.id) === String(teamId.value)) ?? null
+);
+
+// The teams of the answer are ordered by ladder points
+const ladderRank = computed(() =>
+  (seasonLadder.value?.teams ?? []).findIndex(t => String(t.id) === String(teamId.value)) + 1
+);
+
+const ladderMmrHeader = computed(() => currentW3CSeason.value ? `MMR (S${currentW3CSeason.value})` : 'MMR');
+
+const ladderMmrDiff = (row) => (row.mmr?.current ?? 0) - (row.mmr?.start ?? 0);
+
+const fetchLadder = async () => {
+  if (!seasonId.value) return;
+  try {
+    seasonLadder.value = await ladderStore.seasonLadder(seasonId.value);
+  } catch (error) {
+    console.error('Failed to load the ladder of the season:', error);
+    seasonLadder.value = null;
+  }
+};
 
 // Search state
 const searchRace = ref(null);
@@ -451,7 +534,8 @@ watch(showNewPlayerModal, (newValue) => {
 
 onMounted(async () => {
   currentW3CSeason.value = await resolveCurrentW3CSeason();
-  fetchTeam(); 
+  fetchTeam();
+  fetchLadder();
 });
 
 const removePlayerFromTeam = async (playerId) => {
@@ -563,5 +647,10 @@ const filteredAllPlayers = computed(() => {
 
 .player-row:hover {
   background-color: rgba(var(--v-theme-primary), 0.05) !important;
+}
+
+.player-name-link {
+  cursor: pointer;
+  text-decoration: underline;
 }
 </style>
