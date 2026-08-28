@@ -58,7 +58,7 @@
       </v-card-text>
     </v-card>
 
-    <!-- Versus race: five short rows side by side, not five full-width bars -->
+    <!-- Versus race: five short entries side by side, the record and the rate only -->
     <v-card variant="outlined" class="mb-4">
       <v-card-title class="text-body-2">Versus race</v-card-title>
       <v-card-text class="race-grid pt-0">
@@ -70,15 +70,6 @@
             <span class="text-medium-emphasis"> - </span>
             <span class="text-red">{{ row.l }}</span>
           </span>
-          <v-progress-linear
-            :model-value="row.rate"
-            color="success"
-            bg-color="error"
-            :bg-opacity="1"
-            height="8"
-            rounded
-            style="width: 56px"
-          />
           <span class="text-medium-emphasis text-no-wrap">{{ row.rate }}%</span>
         </div>
       </v-card-text>
@@ -311,10 +302,6 @@ watch(() => [props.player?.id, props.seasonId], () => {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 20px;
-}
-/* A column is narrower than an entry, so the bar and the rate take a second line */
-.race-grid > div {
-  flex-wrap: wrap;
 }
 @media (max-width: 900px) {
   .race-grid {
