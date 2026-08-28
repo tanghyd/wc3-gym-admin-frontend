@@ -132,6 +132,32 @@
       </v-card-text>
     </v-card>
 
+    <!-- Achievements: what the season paid out, then the rules still open -->
+    <v-card v-if="scoped" variant="outlined" class="mb-4">
+      <v-card-title class="text-body-2 d-flex align-center">
+        <span>Achievements</span>
+        <v-spacer />
+        <span class="text-caption text-medium-emphasis">{{ achievedPoints }} pts</span>
+      </v-card-title>
+      <v-card-text class="pt-0">
+        <div v-for="badge in earned" :key="badge.id" class="d-flex align-center badge-row">
+          <v-icon size="small" color="amber-darken-2" class="mr-3">{{ badge.icon }}</v-icon>
+          <span class="text-body-2 font-weight-medium mr-3">{{ badge.name }}</span>
+          <span class="text-caption text-medium-emphasis">{{ badge.description }}</span>
+          <v-spacer />
+          <span class="text-body-2 text-amber-darken-2 ml-3">+{{ badge.points }}</span>
+        </div>
+        <div class="text-caption text-medium-emphasis mt-4 mb-1">Locked</div>
+        <div v-for="badge in locked" :key="badge.id" class="d-flex align-center badge-row text-medium-emphasis">
+          <v-icon size="small" class="mr-3">{{ badge.icon }}</v-icon>
+          <span class="text-body-2 mr-3">{{ badge.name }}</span>
+          <span class="text-caption">{{ badge.description }}</span>
+          <v-spacer />
+          <span class="text-body-2 ml-3">+{{ badge.points }}</span>
+        </div>
+      </v-card-text>
+    </v-card>
+
     <!-- Matches, one page of the route at a time -->
     <v-card variant="outlined">
       <v-card-title class="text-body-2 d-flex align-center">
@@ -182,6 +208,7 @@ import { computed, ref, watch } from 'vue';
 import { DateTime } from 'luxon';
 import { useLadderStore, useSeasonStore } from '@/stores';
 import RaceIcon from '@/components/RaceIcon.vue';
+import { achievementPoints, lockedAchievements } from '@/helpers/achievements';
 
 const props = defineProps({
   player: { type: Object, default: null },
@@ -239,6 +266,11 @@ const ladderPointsLine = computed(() => {
   const ladder = (data.value?.wins ?? 0) * 3 + (data.value?.losses ?? 0);
   return ladder === (data.value?.points ?? 0) ? 'ladder points' : `${ladder} ladder points`;
 });
+
+// The earned rules come with the answer; the rest of the catalogue fills the locked list
+const earned = computed(() => data.value?.achievements ?? []);
+const achievedPoints = computed(() => achievementPoints(earned.value));
+const locked = computed(() => lockedAchievements(earned.value));
 
 const versusRaces = computed(() => {
   const names = { HU: 'Human', OC: 'Orc', NE: 'Night Elf', UD: 'Undead', RANDOM: 'Random' };
@@ -367,6 +399,10 @@ watch(() => [props.player?.id, props.seasonId], () => {
 </script>
 
 <style scoped>
+.badge-row {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
 .ladder-chart {
   display: block;
   width: 100%;
