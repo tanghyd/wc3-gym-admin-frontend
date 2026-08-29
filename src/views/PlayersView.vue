@@ -429,6 +429,7 @@ import {
   hasW3CStatsTwoSeasons,
   hasLowGamesTwoSeasons
 } from '@/helpers/w3c-stats';
+import { matchesPlayerSearch, filterByMmrRange } from '@/helpers/players';
 
 
 // State for editing
@@ -463,13 +464,7 @@ const filteredPlayers = computed(() => {
 
   // filter by name / battletag / discord
   if (searchName.value && searchName.value.trim().length > 0) {
-    const q = searchName.value.trim().toLowerCase();
-    list = list.filter(p => {
-      const name = (p.name || '').toLowerCase();
-      const bt = (p.battleTag || '').toLowerCase();
-      const discord = (p.discordTag || '').toLowerCase();
-      return name.includes(q) || bt.includes(q) || discord.includes(q);
-    });
+    list = list.filter(p => matchesPlayerSearch(p, searchName.value));
   }
 
   // filter by race
@@ -482,21 +477,8 @@ const filteredPlayers = computed(() => {
     list = list.filter(p => (p.signup_seasons || []).some(s => s.id === selectedSeasonFilter.value));
   }
 
-  // filter by mmr range
   // filter by mmr range — only apply if user changed from defaults
-  const DEFAULT_MMR_MIN = 0;
-  const DEFAULT_MMR_MAX = 3000;
-  if (Array.isArray(rangeValues.value) && rangeValues.value.length === 2) {
-      const mmrMin = Number(rangeValues.value[0]);
-      const mmrMax = Number(rangeValues.value[1]);
-    const rangeChanged = (mmrMin !== DEFAULT_MMR_MIN) || (mmrMax !== DEFAULT_MMR_MAX);
-    if (rangeChanged) {
-      list = list.filter(p => {
-        const mmr = Number(getW3CMMR(p, currentW3CSeason.value) ?? 0);
-        return mmr >= mmrMin && mmr <= mmrMax;
-      });
-    }
-  }
+  list = filterByMmrRange(list, rangeValues.value, p => Number(getW3CMMR(p, currentW3CSeason.value) ?? 0));
 
   // filter by W3C stats
   if (selectedW3CFilter.value && selectedW3CFilter.value.length > 0) {

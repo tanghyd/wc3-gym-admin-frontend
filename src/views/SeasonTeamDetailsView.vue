@@ -350,6 +350,7 @@ import AchievementChip from '@/components/AchievementChip.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import FilterPanel from '@/components/FilterPanel.vue';
 import { getW3CMMR, syncedAgo, syncedAt, agoFromIso, localFromIso } from '@/helpers/w3c-stats';
+import { matchesPlayerSearch, filterByMmrRange } from '@/helpers/players';
 import W3CIcon from '@/components/W3CIcon.vue';
 import W3CSyncResultDialog from '@/components/W3CSyncResultDialog.vue';
 
@@ -614,13 +615,7 @@ const filteredAllPlayers = computed(() => {
   }
 
   if (searchName.value && searchName.value.trim().length > 0) {
-    const q = searchName.value.trim().toLowerCase();
-    list = list.filter(p => {
-      const name = (p.name || '').toLowerCase();
-      const bt = (p.battleTag || '').toLowerCase();
-      const discord = (p.discordTag || '').toLowerCase();
-      return name.includes(q) || bt.includes(q) || discord.includes(q);
-    });
+    list = list.filter(p => matchesPlayerSearch(p, searchName.value));
   }
 
   if (searchRace.value) {
@@ -628,19 +623,7 @@ const filteredAllPlayers = computed(() => {
   }
 
   // filter by mmr range — only apply if user changed from defaults
-  const DEFAULT_MMR_MIN = 0;
-  const DEFAULT_MMR_MAX = 3000;
-  if (Array.isArray(rangeValues.value) && rangeValues.value.length === 2) {
-    const mmrMin = Number(rangeValues.value[0]);
-    const mmrMax = Number(rangeValues.value[1]);
-    const rangeChanged = (mmrMin !== DEFAULT_MMR_MIN) || (mmrMax !== DEFAULT_MMR_MAX);
-    if (rangeChanged) {
-      list = list.filter(p => {
-        const mmr = Number(getW3CMMR(p, currentW3CSeason.value) ?? 0);
-        return mmr >= mmrMin && mmr <= mmrMax;
-      });
-    }
-  }
+  list = filterByMmrRange(list, rangeValues.value, p => Number(getW3CMMR(p, currentW3CSeason.value) ?? 0));
 
   return list;
 });
