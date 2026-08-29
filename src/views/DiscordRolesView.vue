@@ -264,8 +264,6 @@ const kindLabel = (kind) => KINDS.find(k => k.value === kind)?.title ?? kind;
 const seasonName = (id) => seasons.value.find(s => s.id === id)?.name ?? 'Every season';
 const teamName = (id) => teams.value.find(t => t.id === id)?.name ?? 'Every team';
 
-const syncMessage = (rows) =>
-  rows.length ? `Synced. ${rows.length} account(s) still differ.` : 'Synced. Every account matches the database.';
 
 const fetchAll = async () => {
   isLoading.value = true;
@@ -289,8 +287,10 @@ const syncAll = async () => {
   errorMessage.value = null;
   successMessage.value = null;
   try {
-    report.value = await configStore.syncDiscordRoles();
-    successMessage.value = syncMessage(report.value);
+    // The answer is the difference sync just applied, so the table is read again
+    const applied = await configStore.syncDiscordRoles();
+    report.value = await configStore.fetchDiscordRoleReport();
+    successMessage.value = `Synced ${applied.length} account(s). ${report.value.length} still differ.`;
   } catch (error) {
     errorMessage.value = 'Failed to sync the roles: ' + error.message;
   } finally {
@@ -303,7 +303,7 @@ const syncOne = async (row) => {
   errorMessage.value = null;
   successMessage.value = null;
   try {
-    // The answer covers only this account, so the other rows are read again
+    // The answer is the difference sync just applied, so the table is read again
     await configStore.syncDiscordRoles([row.user_id]);
     report.value = await configStore.fetchDiscordRoleReport();
     successMessage.value = `Synced ${row.name}.`;
