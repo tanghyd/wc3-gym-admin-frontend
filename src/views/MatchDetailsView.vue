@@ -1084,36 +1084,24 @@ import { useRouter } from 'vue-router';
 import { ref, onMounted, computed } from 'vue';
 import { DateTime } from "luxon";
 import { useMatchStore, useSeriesStore, useTeamStore } from '@/stores';
-import { useDate } from 'vuetify';
 import { storeToRefs } from 'pinia';
 import { fetchWrapper } from '@/helpers';
-import FlagIcon from '../components/FlagIcon.vue';
 import SimpleTimePicker from '../components/SimpleTimePicker.vue';
 import SimpleDatePicker from '../components/SimpleDatePicker.vue';
 import PlayerDetailsDialog from '../components/PlayerDetailsDialog.vue';
-import { getW3CMMR, getW3CMMRSeason, getW3CStatsWithFallback, syncedAgo, syncedAt } from '@/helpers/w3c-stats';
+import { getW3CMMR, getW3CMMRSeason, syncedAgo, syncedAt } from '@/helpers/w3c-stats';
 import W3CSyncResultDialog from '@/components/W3CSyncResultDialog.vue';
 import { resolveCurrentW3CSeason } from '@/helpers/current-season';
 import { teamImageUrl, hideMissingImage } from '@/helpers/team-image';
 
-defineOptions({
-  name: 'MatchDetailsView'
-})
 
 // Stores initialization
 const router = useRouter();
 const matchStore = useMatchStore();
 const seriesStore = useSeriesStore();
 const teamStore = useTeamStore();
-const { match, matches } = storeToRefs(matchStore);
+const { match } = storeToRefs(matchStore);
 const { series, draftSeries } = storeToRefs(seriesStore);
-
-// Combined series (published + drafts)
-const allSeries = computed(() => {
-  const published = (series.value || []).map(s => ({ ...s, isDraft: false }));
-  const drafts = (draftSeries.value || []).map(s => ({ ...s, isDraft: true }));
-  return [...published, ...drafts];
-});
 
 // Week navigation state
 const weeklyMatches = ref([]);
@@ -1220,8 +1208,6 @@ const matchId = computed(() => router.currentRoute.value.params.id);
 
 // Component state
 const isLoading = ref(false);
-const search = ref('');
-const date = useDate();
 
 // Team state
 const backendUrl = `${import.meta.env.VITE_BACKEND_URL}`;
@@ -1270,7 +1256,6 @@ const loadMissingSeriesPlayers = async () => {
 };
 
 // Series state
-const showNewSeriesModal = ref(false);
 const createNewSeriesDialogOpen = ref(false);
 const newSeries_Player_1 = ref([]);
 const newSeries_Player_2 = ref([]);
@@ -1399,18 +1384,6 @@ const getRowClass = item => {
 };
 
 
-const customSort = (items, sortBy, sortDesc) => {
-  console.log(item, sortby, sortDesc);
-  if (sortBy === 'w3c_mmr') {
-    return [...items].sort((a, b) => {
-      let aValue = a.w3c_stats.find(player => player.race === a.race)?.mmr || 0;
-      let bValue = b.w3c_stats.find(player => player.race === b.race)?.mmr || 0;
-      return sortDesc ? bValue - aValue : aValue - bValue;
-    });
-  }
-  return items; // Uses default sorting for other columns
-};
-
 const customFilterSeries = (value, search, item) => {
   if (!search) return true;
   search = search.toLowerCase();
@@ -1422,14 +1395,6 @@ const customFilterSeries = (value, search, item) => {
 }
 
 
-
-const seriesHeaders = [
-  { title: 'ID', value: 'id' },
-  { title: 'Player 1', value: 'player1.name' },
-  { title: '', value: '' },
-  { title: 'Player 2', value: 'player2.name' },
-  { title: 'Actions', align: 'center' }
-];
 
 const openCreateNewSeries = () => {
   createNewSeriesDialogOpen.value = true;
@@ -1992,13 +1957,6 @@ onMounted(async () => {
   object-fit: cover;
 }
 
-.toolbar-btn { margin-right: 12px !important; }
-
-/* Keep action buttons on a single line and prevent wrapping in table cells */
-.actions-cell {
-  white-space: nowrap;
-}
-
 #matchHeader {
   position: relative;
   color: white;
@@ -2041,12 +1999,6 @@ onMounted(async () => {
   font-size: 2rem !important;
   font-weight: bold;
   min-width: 80px;
-}
-
-.vs {
-  font-family: "Bungee Shade", sans-serif;
-  font-weight: 400;
-  font-style: normal;
 }
 
 .player-cell {

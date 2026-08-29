@@ -320,17 +320,14 @@
 
 <script setup>
 import RowActions from '@/components/RowActions.vue';
-import '@/assets/base.css';
 import { ref, computed, onMounted, watch } from 'vue';
-import { useFantasyStore, useSeriesStore, usePlayerStore, useConfigStore, useSeasonStore } from '@/stores';
+import { useFantasyStore, useSeriesStore, useConfigStore, useSeasonStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { resolveCurrentSeasonId } from '@/helpers/current-season';
 
-defineOptions({ name: 'FantasyBetsView' });
 
 const fantasyStore = useFantasyStore();
 const seriesStore = useSeriesStore();
-const playerStore = usePlayerStore();
 const configStore = useConfigStore();
 const seasonStore = useSeasonStore();
 

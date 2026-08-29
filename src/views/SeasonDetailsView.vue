@@ -470,9 +470,6 @@ import { storeToRefs } from 'pinia';
 import bannerImg from '@/assets/media/GNL_Banner.png';
   import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
 
-defineOptions({
-  name: 'SeasonDetailsView'
-})
 
 // Store initialization
 const router = useRouter();
@@ -511,7 +508,6 @@ const editMatchDialogOpen = ref(false);
 
 // Match state
 const selectedMatch = ref(null);
-const selectedMap = ref(null);
 const newMatch = ref(null);
 
 // Team state
@@ -532,7 +528,6 @@ const feedbackType = ref('success'); // 'success' or 'error'
 
 // UI state
 const teamsPanel = ref(null);
-const weekMatchCounts = ref({});
 
 // Compute teams that are not part of the season
 const availableTeams = computed(() => {
@@ -541,11 +536,6 @@ const availableTeams = computed(() => {
   }
   return allTeams.value.filter(team => !teamStore.teams.some(seasonTeam => seasonTeam.id === team.id));
 });
-
-// Helper to get match count per week (for badges)
-const getWeekMatchCount = (week) => {
-  return weekMatchCounts.value[week] || 0;
-};
 
 // Helper to get score color
 const getScoreColor = (score, opponentScore) => {
@@ -663,7 +653,6 @@ const closeTeamSelectionModal = () => {
       isLoading.value = true;
       try {
         await matchStore.createMatch(newMatch.value); // Assuming a createMatch method exists
-        console.log("Match added successfully!");
         await fetchMatches(selectedWeek.value); // Refresh matches for the week
         closeMatchCreationModal();
       } catch (error) {
@@ -684,20 +673,6 @@ const closeTeamSelectionModal = () => {
   } finally {
     if (!isInitLoading.value) {
       isLoading.value = false;
-    }
-  }
-};
-
-const fetchAllWeekMatchCounts = async () => {
-  // Fetch match counts for all weeks to show badges
-  if (!season.value?.number_weeks) return;
-  
-  for (let week = 1; week <= season.value.number_weeks; week++) {
-    try {
-      await matchStore.searchMatchesBySeasonAndPlayday(seasonId, week);
-      weekMatchCounts.value[week] = matches.value.length;
-    } catch (error) {
-      weekMatchCounts.value[week] = 0;
     }
   }
 };
@@ -774,17 +749,6 @@ onMounted(async () => {
   }
 });
 
-// Route watchers
-watch(() => route.hash, (newHash) => {
-  if (newHash) {
-    const weekFromHash = route.hash && route.hash.includes('#week-') 
-      ? parseInt(route.hash.replace('#week-', ''), 10) 
-      : 1;
-    if(selectedWeek.value && weekFromHash != selectedWeek.value) {
-      fetchMatches(weekFromHash);
-    }
-  }
-});
   </script>
 
   <style scoped>

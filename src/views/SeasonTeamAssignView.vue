@@ -366,22 +366,17 @@
 </template>
 
 <script setup>
-import '@/assets/base.css';
 import { computed, onMounted, ref } from 'vue';
 import { useLadderStore, usePlayerStore, useTeamStore, useSeasonStore } from '@/stores';
 import { resolveCurrentW3CSeason } from '@/helpers/current-season';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
-import RaceIcon from '@/components/RaceIcon.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import FilterPanel from '@/components/FilterPanel.vue';
 import SyncProgress from '@/components/SyncProgress.vue';
 import W3CSyncResultDialog from '@/components/W3CSyncResultDialog.vue';
-import CountrySelect from '@/components/CountrySelect.vue';
-import RaceSelect from '@/components/RaceSelect.vue';
 import { 
   getW3CMMR,
-  getW3CStatsWithFallback,
   getW3CGamesCount,
   hasW3CStatsTwoSeasons,
   hasLowGamesTwoSeasons,
@@ -389,7 +384,6 @@ import {
   syncedAt
 } from '@/helpers/w3c-stats';
 
-defineOptions({ name: 'SeasonTeamAssignView' });
 
 const router = useRouter();
 
@@ -404,7 +398,6 @@ const playerStore = usePlayerStore();
 const teamStore = useTeamStore();
 const seasonStore = useSeasonStore();
 
-const { players } = storeToRefs(playerStore);
 const { teams } = storeToRefs(teamStore);
 const { current_season } = storeToRefs(seasonStore);
 
@@ -413,12 +406,6 @@ const signedUpPlayersData = ref([]);
 
 const searchName = ref('');
 const searchRace = ref(null);
-const races = ref([
-  { name: 'HU' },
-  { name: 'OC' },
-  { name: 'UD' },
-  { name: 'NE' }
-]);
 const rangeValues = ref([0, 3000]);
 const hideNoW3CStats = ref(false);
 
@@ -440,11 +427,6 @@ let originalSignupSeasonIds = [];
 
 // Current W3C season for stats fallback
 const currentW3CSeason = ref(null);
-
-// W3C stats helper functions with season fallback for display
-const getW3CStats = (player) => {
-  return getW3CStatsWithFallback(player, null, currentW3CSeason.value);
-};
 
 const hasW3CStats = (player) => {
   // Check current season OR previous season for warning display
@@ -606,14 +588,10 @@ function getTeamPlayersForSeason(team) {
 }
 
 // per-team loading state to avoid double-clicks
-const addLoading = ref({});
 const removeLoading = ref({});
 const syncAllLoading = ref(false);
 const assignAllLoading = ref(false);
 
-const isAddLoading = (teamId) => {
-  return !!addLoading.value[teamId];
-};
 const isRemoveLoading = (teamId, playerId) => {
   return !!removeLoading.value[`${teamId}_${playerId}`];
 };

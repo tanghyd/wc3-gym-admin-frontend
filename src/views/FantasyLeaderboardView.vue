@@ -625,15 +625,12 @@
 
 <script setup>
 import RowActions from '@/components/RowActions.vue';
-import '@/assets/base.css';
 import { ref, computed, onMounted } from 'vue';
 import { useFantasyStore, useSeasonStore, usePlayerStore, useTeamStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
-import RaceIcon from '@/components/RaceIcon.vue';
 import { resolveCurrentSeasonId } from '@/helpers/current-season';
 
-defineOptions({ name: 'FantasyLeaderboardView' });
 
 const router = useRouter();
 const fantasyStore = useFantasyStore();
@@ -1046,13 +1043,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.v-chip.gold {
-  background-color: #FFD700 !important;
-  color: #000 !important;
-}
-
-.v-chip.silver {
-  background-color: #C0C0C0 !important;
-  color: #000 !important;
-}
 </style>

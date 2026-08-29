@@ -238,9 +238,8 @@
 </template>
 <script setup>
 import RowActions from '@/components/RowActions.vue';
-import '@/assets/base.css';
 import { useTeamStore } from '@/stores';
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
 
@@ -252,9 +251,6 @@ const extractErrorMessage = (error) => {
   return JSON.stringify(error);
 };
 
-defineOptions({
-  name: 'TeamsView'
-})
 
 // Store initialization and refs
 const teamStore = useTeamStore();

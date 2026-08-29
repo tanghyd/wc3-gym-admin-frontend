@@ -169,13 +169,10 @@ import { useKothStore } from '@/stores';
 import { useConfigStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { useRoute } from 'vue-router';
-import RaceIcon from '@/components/RaceIcon.vue';
-import RaceSelect from '@/components/RaceSelect.vue';
 import bracketSilverIcon from '@/assets/media/bracket-silver.png';
 import bracketGoldIcon from '@/assets/media/bracket-gold.png';
 import bracketDiamondIcon from '@/assets/media/bracket-diamond.png';
 
-defineOptions({ name: 'KothDashboard' });
 
 const route = useRoute();
 const isCleanMode = computed(() => route.query.mode === 'clean');
@@ -344,18 +341,6 @@ async function submitSignup() {
   color: white;
 }
 
-.kings-section {
-  background: rgba(255, 193, 7, 0.05);
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  color: #f57f17;
-}
-
 .king-card {
   background: rgba(255, 255, 255, 0.8) !important;
   border: 2px solid #ffc107 !important;
@@ -383,62 +368,10 @@ async function submitSignup() {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.match-card-compact {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-radius: 12px !important;
-}
-
-.teams-compact {
-  font-size: 0.875rem;
-}
-
-.team-row {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-}
-
-.team-label {
-  font-weight: bold;
-  min-width: 30px;
-  color: #37474f;
-}
-
-.team-players-compact {
-  flex: 1;
-  color: #546e7a;
-}
-
-.match-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-radius: 16px !important;
-  overflow: hidden;
-}
-
-.match-header {
-  background: linear-gradient(135deg, #37474f 0%, #546e7a 100%);
-  color: white;
-}
-
-.team-card {
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.team-header {
-  color: #37474f;
-  font-size: 0.95rem;
-}
-
 .player-item {
   padding: 4px 8px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.6);
-}
-
-.matches-section {
-  margin-top: 48px;
 }
 
 .signup-btn {
