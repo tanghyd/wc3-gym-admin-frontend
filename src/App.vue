@@ -3,6 +3,7 @@ import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, computed } from 'vue';
 import { useAuthStore } from '@/stores';
+import { canSeeRole } from '@/helpers';
 
 const authStore = useAuthStore();
 const { user: authUser, me } = storeToRefs(authStore);
@@ -38,12 +39,13 @@ const showNavLinks = computed(() => !!authUser.value && route.meta.nav !== false
 const showBar = computed(() => route.meta.bar !== false && !isReadonly.value);
 
 // a link is drawn only when the session role reaches the target route's meta.role
-const canSee = (path) => router.resolve(path).meta.role !== 'admin' || me.value?.role === 'admin';
+const canSee = (path) => canSeeRole(me.value?.role, router.resolve(path).meta.role);
 
 const avatarUrl = computed(() => me.value?.avatar
     ? `https://cdn.discordapp.com/avatars/${me.value.discord_id}/${me.value.avatar}.png`
     : null);
 const initials = computed(() => (me.value?.name || '?').slice(0, 2).toUpperCase());
+const roleLabel = computed(() => me.value?.role?.replace(/^./, c => c.toUpperCase()));
 </script>
 
 <template>
@@ -91,7 +93,7 @@ const initials = computed(() => (me.value?.name || '?').slice(0, 2).toUpperCase(
                             </v-list-item>
                         </v-list>
                     </v-menu>
-                    <v-menu offset-y>
+                    <v-menu v-if="canSee('/fantasy')" offset-y>
                         <template v-slot:activator="{ props }">
                             <v-list-item v-bind="props" class="fantasy-menu-activator">
                                 <a class="nav-link">
@@ -134,7 +136,7 @@ const initials = computed(() => (me.value?.name || '?').slice(0, 2).toUpperCase(
                             </v-list-item>
                         </template>
                         <v-list>
-                            <v-list-item :title="me?.name" :subtitle="me?.role" />
+                            <v-list-item :title="me?.name" :subtitle="roleLabel" />
                             <v-divider />
                             <v-list-item prepend-icon="mdi-logout" title="Logout" @click="authStore.logout()" />
                         </v-list>
