@@ -16,6 +16,14 @@ export const useAuthStore = defineStore({
         returnUrl: null
     }),
     actions: {
+        // break-glass admin-token login, reached only from /login?legacy=1
+        async login(token) {
+            this.user = await fetchWrapper.post(`${backendUrl}/login`, { token });
+            this.me = { role: 'admin' };  // the admin token is an admin session by definition
+            localStorage.setItem('user', JSON.stringify(this.user));
+            localStorage.setItem('me', JSON.stringify(this.me));
+            router.push(this.returnUrl || '/');
+        },
         // Discord callback tokens: /me is read first so a rejected member sees the error, not a logout
         async startSession(tokens) {
             const me = await this.fetchMe(tokens.access_token);

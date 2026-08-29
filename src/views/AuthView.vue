@@ -2,12 +2,13 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { useAuthStore } from '@/stores';
+import { useAuthStore, useConfigStore } from '@/stores';
 import { router } from '@/helpers';
 
 const route = useRoute();
 const authStore = useAuthStore();
 const error = ref(null);
+const inviteUrl = ref(null);
 
 onMounted(async () => {
     const { access_token, refresh_token } = route.query;
@@ -20,6 +21,8 @@ onMounted(async () => {
         router.push(me.role === 'admin' ? (authStore.returnUrl || '/') : '/profile');
     } catch (err) {
         error.value = err.message;
+        const settings = await useConfigStore().fetchSettings().catch(() => []);
+        inviteUrl.value = settings.find(s => s.key === 'discord_invite_url')?.value || null;
     }
 });
 </script>
@@ -37,7 +40,8 @@ onMounted(async () => {
                     <v-progress-circular indeterminate size="24" class="mr-3" />
                     Checking your Discord membership...
                 </div>
-                <v-btn v-if="error" to="/login" color="primary" variant="text" class="mt-4">Back to login</v-btn>
+                <v-btn v-if="inviteUrl" :href="inviteUrl" target="_blank" color="#5865F2" class="text-white mt-4 mr-2">Join the Discord</v-btn>
+                <v-btn v-if="error" to="/login" color="primary" variant="text" class="mt-4">Try again</v-btn>
             </v-card-text>
         </v-card>
     </v-container>
