@@ -32,9 +32,8 @@
       <v-spacer />
       <v-col cols="auto" class="text-right" style="min-width: 240px">
         <v-progress-linear
-          v-if="syncProgress"
+          v-if="syncProgress?.total"
           :model-value="syncPercent"
-          :indeterminate="!syncProgress.total"
           color="primary"
           height="20"
           rounded
@@ -90,9 +89,8 @@
           Sync Ladder
         </v-btn>
         <v-progress-linear
-          v-if="syncProgress"
+          v-if="syncProgress?.total"
           :model-value="syncPercent"
-          :indeterminate="!syncProgress.total"
           color="primary"
           height="20"
           rounded
