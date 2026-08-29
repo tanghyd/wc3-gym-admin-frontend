@@ -597,7 +597,8 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useFantasyStore, useTeamStore, usePlayerStore, useConfigStore, useSeriesStore } from '@/stores';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
-import { DateTime } from 'luxon';
+import { formatDateTime } from '@/helpers/datetime';
+import { validateBetPoints as checkBetPoints } from '@/helpers/bets';
 import { getW3CMMR } from '@/helpers/w3c-stats';
 import { resolveCurrentSeasonId, resolveCurrentW3CSeason } from '@/helpers/current-season';
 import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
@@ -1006,18 +1007,7 @@ const closeBet = () => {
   betPointsError.value = null;
 };
 
-const validateBetPoints = (points) => {
-  if (!points || points <= 0) {
-    return 'Bet points must be greater than 0';
-  }
-  if (minBetPoints.value && points < minBetPoints.value) {
-    return `Bet points must be at least ${minBetPoints.value}`;
-  }
-  if (maxBetPoints.value && points > maxBetPoints.value) {
-    return `Bet points must not exceed ${maxBetPoints.value}`;
-  }
-  return null;
-};
+const validateBetPoints = (points) => checkBetPoints(points, minBetPoints.value, maxBetPoints.value);
 
 const saveBet = async () => {
   isBetSaving.value = true;
@@ -1068,28 +1058,6 @@ const deleteBet = async () => {
 };
 
 // Helper functions for betting display
-const formatDateTime = (dateTimeStr) => {
-  if (!dateTimeStr) return 'Not set';
-  try {
-    // Backend stores datetime in UTC as naive datetime (e.g., "2025-01-15 18:00:00")
-    // Parse it as UTC and display in user's local timezone
-    const dt = DateTime.fromISO(dateTimeStr + 'Z', { zone: 'UTC' });
-    
-    if (!dt.isValid) return dateTimeStr;
-    
-    // Convert to user's local timezone and format
-    return dt.toLocal().toLocaleString({
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short'
-    });
-  } catch {
-    return dateTimeStr;
-  }
-};
 
 const isSeriesPlayed = (series) => {
   // A series is considered played if:

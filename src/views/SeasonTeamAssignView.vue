@@ -383,6 +383,7 @@ import {
   syncedAgo,
   syncedAt
 } from '@/helpers/w3c-stats';
+import { matchesPlayerSearch, filterByMmrRange } from '@/helpers/players';
 
 
 const router = useRouter();
@@ -519,29 +520,12 @@ const signedUpPlayers = computed(() => {
 const filteredPlayers = computed(() => {
   let list = signedUpPlayers.value || [];
   if (searchName.value && searchName.value.trim().length > 0) {
-    const q = searchName.value.trim().toLowerCase();
-    list = list.filter(p =>
-      (p.name || '').toLowerCase().includes(q) ||
-      (p.battleTag || '').toLowerCase().includes(q) ||
-      (p.discordTag || '').toLowerCase().includes(q)
-    );
+    list = list.filter(p => matchesPlayerSearch(p, searchName.value));
   }
   if (searchRace.value) list = list.filter(p => p.race === searchRace.value);
   
   // filter by mmr range — only apply if user changed from defaults
-  const DEFAULT_MMR_MIN = 0;
-  const DEFAULT_MMR_MAX = 3000;
-  if (Array.isArray(rangeValues.value) && rangeValues.value.length === 2) {
-    const mmrMin = Number(rangeValues.value[0]);
-    const mmrMax = Number(rangeValues.value[1]);
-    const rangeChanged = (mmrMin !== DEFAULT_MMR_MIN) || (mmrMax !== DEFAULT_MMR_MAX);
-    if (rangeChanged) {
-      list = list.filter(p => {
-        const mmr = getW3CMMR(p) ?? 0;
-        return mmr >= mmrMin && mmr <= mmrMax;
-      });
-    }
-  }
+  list = filterByMmrRange(list, rangeValues.value, p => getW3CMMR(p) ?? 0);
   
   // filter out players without W3C stats if checkbox is checked
   if (hideNoW3CStats.value) {

@@ -240,11 +240,7 @@ function getBracketIcon(bracket) {
 
 function getBracketThresholdText(bracket) {
   if (!event.value) return '';
-  const thresholds = {
-    1: `< ${event.value.bracket_1_threshold} MMR`,
-    2: `${event.value.bracket_1_threshold} - ${event.value.bracket_2_threshold - 1} MMR`,
-    3: `≥ ${event.value.bracket_2_threshold} MMR`
-  };
+  const thresholds = kothStore.getBracketThresholdText(event.value);
   return thresholds[bracket] || '';
 }
 

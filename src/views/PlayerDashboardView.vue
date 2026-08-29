@@ -374,6 +374,7 @@ import SimpleTimePicker from '@/components/SimpleTimePicker.vue';
 import SimpleDatePicker from '@/components/SimpleDatePicker.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import { DateTime } from 'luxon';
+import { formatDateTime } from '@/helpers/datetime';
 import { useDisplay } from 'vuetify';
 import { resolveCurrentW3CSeason } from '@/helpers/current-season';
 
@@ -543,30 +544,6 @@ watch(sortBy, () => {
     page.value = 1;
   }
 });
-
-// Format date/time for display
-const formatDateTime = (dateTimeStr) => {
-  if (!dateTimeStr) return 'Not set';
-  try {
-    // Backend stores datetime in UTC as naive datetime (e.g., "2025-01-15 18:00:00")
-    // Parse it as UTC and display in user's local timezone
-    const dt = DateTime.fromISO(dateTimeStr + 'Z', { zone: 'UTC' });
-    
-    if (!dt.isValid) return dateTimeStr;
-    
-    // Convert to user's local timezone and format
-    return dt.toLocal().toLocaleString({
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short'
-    });
-  } catch {
-    return dateTimeStr;
-  }
-};
 
 // Get score color based on win/loss
 const getScoreColor = (item) => {

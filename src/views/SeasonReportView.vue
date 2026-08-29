@@ -474,6 +474,7 @@ import { useSeriesStore } from '@/stores/series.store';
 import { useFantasyStore } from '@/stores/fantasy.store';
 import { useLadderStore } from '@/stores/ladder.store';
 import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
+import { raceWrapper } from '@/helpers/races';
 
 
 const route = useRoute();
@@ -618,15 +619,8 @@ const raceColors = {
     NE: '#2E7D32',     // green
     RANDOM: '#F9A825', // yellow
 };
-const raceNames = {
-    HU: 'Human',
-    OC: 'Orc',
-    UD: 'Undead',
-    NE: 'Night Elf',
-    RANDOM: 'Random',
-};
 const getRaceColor = race => raceColors[race] || '#607D8B';
-const getRaceName = race => raceNames[race] || race;
+const getRaceName = race => raceWrapper.getRaceObject(race)?.name || race;
 
 // ─── Rank medal ───────────────────────────────────────────────────────────────
 const rankMedal = rank => {

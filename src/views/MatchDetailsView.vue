@@ -1056,29 +1056,19 @@
 
   <W3CSyncResultDialog v-model="syncDialog" :entries="syncEntries" />
 
-  <!-- Delete Confirmation Dialog -->
-  <v-dialog v-model="showDeleteDialog" max-width="400">
-    <v-card>
-      <v-card-title class="bg-error">
-        <v-icon class="mr-2">mdi-alert</v-icon>
-        Confirm Deletion
-      </v-card-title>
-      <v-card-text class="pt-4">
-        Are you sure you want to delete this item? This action cannot be undone.
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn variant="text" @click="cancelDeleteDialog">Cancel</v-btn>
-        <v-btn color="error" @click="confirmDelete">Delete</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <ConfirmDeleteDialog
+    v-model="showDeleteDialog"
+    message="Are you sure you want to delete this item? This action cannot be undone."
+    @confirm="confirmDelete"
+    @cancel="cancelDeleteDialog"
+  />
 
 </template>
 
 
 <script setup>
 import RowActions from '@/components/RowActions.vue';
+import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
 import bannerImg from '@/assets/media/match-banner.jpg'
 import { useRouter } from 'vue-router';
 import { ref, onMounted, computed } from 'vue';
@@ -1093,6 +1083,7 @@ import { getW3CMMR, getW3CMMRSeason, syncedAgo, syncedAt } from '@/helpers/w3c-s
 import W3CSyncResultDialog from '@/components/W3CSyncResultDialog.vue';
 import { resolveCurrentW3CSeason } from '@/helpers/current-season';
 import { teamImageUrl, hideMissingImage } from '@/helpers/team-image';
+import { raceWrapper } from '@/helpers/races';
 
 
 // Stores initialization
@@ -1637,16 +1628,7 @@ const getAutoHostPlayerId = (player1, player2, team1HostCount, team2HostCount) =
 };
 
 // Get race icon URL from race code
-const getRaceIconUrl = (race) => {
-  const raceUrls = {
-    'HU': 'https://warcraft-gym.com/wp-content/uploads/2021/07/HUMAN.86b68278.png',
-    'OC': 'https://warcraft-gym.com/wp-content/uploads/2021/07/ORC.fe8d30a3.png',
-    'UD': 'https://warcraft-gym.com/wp-content/uploads/2021/07/UNDEAD.eedab6ad.png',
-    'NE': 'https://warcraft-gym.com/wp-content/uploads/2021/07/NIGHT_ELF.58a510d9.png',
-    'RANDOM': 'https://warcraft-gym.com/wp-content/uploads/2021/07/RANDOM.f67c1233.png'
-  };
-  return raceUrls[race] || '';
-};
+const getRaceIconUrl = (race) => raceWrapper.getRaceObject(race)?.icon || '';
 
 const proposeSeries = async () => {
   isLoading.value = true;
