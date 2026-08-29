@@ -33,7 +33,7 @@
             <div><strong>Name:</strong> The player name — choose freely (this is how players are shown in the UI).</div>
             <div><strong>BattleTag:</strong> Your BattleNet / W3C ID in the format <code>Name#123456</code>. You can find it on your W3C profile — <a href="https://w3champions.com/" target="_blank" rel="noopener noreferrer">W3Champions</a>.</div>
             <div><strong>Player Country:</strong> Country you live in — this helps with scheduling matches.</div>
-            <div><strong>Race:</strong> The race you plan to play in the league. It can be changed until the league starts; after the draft changes require agreement from your team captain.</div>
+            <div><strong>Main race:</strong> The race you plan to play in the league. It can be changed until the league starts; after the draft changes require agreement from your team captain.</div>
             <div><strong>Signup Race MMR:</strong> Current MMR for the selected race on W3Champions.</div>
           </v-alert>
           <v-form ref="formRef" @submit.prevent="onSubmit">
@@ -85,11 +85,19 @@
             </v-row>
 
             <v-row :dense="true">
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <CountrySelect v-model="country" required />
               </v-col>
-              <v-col cols="12" md="6">
-                <RaceSelect v-model="race" required />
+              <v-col cols="12" md="4">
+                <RaceSelect v-model="race" label="Main race" required />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-autocomplete
+                  v-model="timezone"
+                  label="Timezone"
+                  :menu-props="{ scrollStrategy: 'close' }"
+                  :items="timezones"
+                />
               </v-col>
             </v-row>
 
@@ -123,6 +131,7 @@ import { useRoute } from 'vue-router';
 import { useSeasonStore, useConfigStore, usePlayerStore, useAuthStore } from '@/stores';
 import { fetchWrapper } from '@/helpers';
 import { storeToRefs } from 'pinia';
+import CountryCodes from 'country-code-info';
 
 const route = useRoute();
 const token = ref(route.query.token || '');
@@ -136,8 +145,11 @@ const discordId = ref('');
 const discordTag = ref('');
 const name = ref('');
 const battleTag = ref('');
-const country = ref('');
+// the browser's region is the default country, e.g. en-US -> US; empty when it names no country
+const country = ref(CountryCodes.findCountry({ a2: new Intl.Locale(navigator.language || 'en').region })?.a2 || '');
 const race = ref('');
+const timezones = Intl.supportedValuesOf('timeZone');
+const timezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 const selectedSignupSeasonId = ref(null);
 
 const submitting = ref(false);
@@ -234,6 +246,7 @@ onMounted(async () => {
           if (existing.battleTag) battleTag.value = existing.battleTag;
           if (existing.country) country.value = existing.country;
           if (existing.race) race.value = existing.race;
+          if (existing.timezone) timezone.value = existing.timezone;
         }
       } catch (e) {
         console.log('Could not prefetch existing user data:', e);
@@ -289,6 +302,7 @@ async function onSubmit() {
       battleTag: battleTag.value,
       country: country.value,
       race: race.value,
+      timezone: timezone.value || undefined,
       // include season id if token had one or it was provided
       season_id: selectedSignupSeasonId.value ? selectedSignupSeasonId.value : undefined
     };
