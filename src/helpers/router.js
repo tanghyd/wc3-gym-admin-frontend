@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 import { useAuthStore } from '@/stores';
-import { HomeView, LoginView, AuthView, ProfileView, PlayersView, SeasonsView, SeasonDetailsView, MatchDetailsView, SeasonTeamDetailsView, SeasonTeamAssignView, MapsView, TeamsView, PublicSignupView, PlayerDashboardView, ConfigView, FantasyLeaderboardView, FantasyBetsView, FantasyDashboardView, FantasyTiersView, UserGuideView, KothView, KothDashboard, PlayerCareerStatsView, SeasonReportView, RandomStatsView, LadderView } from '@/views';
+import { HomeView, LoginView, ProfileView, PlayersView, SeasonsView, SeasonDetailsView, MatchDetailsView, SeasonTeamDetailsView, SeasonTeamAssignView, MapsView, TeamsView, PublicSignupView, PlayerDashboardView, ConfigView, FantasyLeaderboardView, FantasyBetsView, FantasyDashboardView, FantasyTiersView, UserGuideView, KothView, KothDashboard, PlayerCareerStatsView, SeasonReportView, RandomStatsView, LadderView } from '@/views';
 
 // meta.role: the lowest session role the route accepts; meta.nav / meta.bar = false hide the links / app bar
 const RANK = { public: 0, guest: 1, member: 2, coach: 3, admin: 4 };
@@ -14,7 +14,6 @@ export const router = createRouter({
     routes: [
         { path: '/', component: HomeView, meta: { role: 'admin' } },
         { path: '/login', component: LoginView, meta: { role: 'public' } },
-        { path: '/auth', component: AuthView, meta: { role: 'public', nav: false } },
         { path: '/profile', component: ProfileView, meta: { role: 'guest' } },
         { path: '/seasons', component: SeasonsView, meta: { role: 'guest' } },
         { path: '/signup', component: PublicSignupView, meta: { role: 'public', nav: false } },
@@ -42,18 +41,15 @@ export const router = createRouter({
     ]
 });
 
-router.beforeEach(async (to) => {
+router.beforeEach((to) => {
     if (to.meta.role === 'public') return;
 
     const auth = useAuthStore();
-    if (!auth.user || auth.isTokenExpired(auth.user.refresh_token)) {
+    if (!auth.me) {
         auth.returnUrl = to.fullPath;
         return '/login';
     }
-    if (auth.isTokenExpired(auth.user.access_token)) {
-        await auth.refresh(auth.user.refresh_token);
-    }
-    if (!canSeeRole(auth.me?.role, to.meta.role)) {
+    if (!canSeeRole(auth.me.role, to.meta.role)) {
         return '/profile';
     }
 });

@@ -103,31 +103,13 @@ function request(method) {
 
 // exported so the raw FormData requests can send the same bearer
 export async function authHeader(method, url) {
-    const authstore = useAuthStore();
-    const user = authstore.user;
-    const isLoggedIn = !!user?.access_token;
-    const isApiUrl = url.startsWith(import.meta.env.VITE_BACKEND_URL);
-    const isRefreshUrl = url.startsWith(import.meta.env.VITE_BACKEND_URL + "/refresh");
-    const isLoginUrl = url.startsWith(import.meta.env.VITE_BACKEND_URL + "/login");
-
-    if (isLoginUrl) {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    if (!url.startsWith(backendUrl) || url.startsWith(`${backendUrl}/login`)) {
         return {};
     }
-    if (isRefreshUrl) {
-        return { Authorization: `Bearer ${user.refresh_token}` };
-    } 
-    if (isLoggedIn && isApiUrl) {
-        if (authstore.isTokenExpired(user.access_token)) {
-            if (authstore.isTokenExpired(user.refresh_token)) {
-                authstore.logout();
-                return {};
-            } else {
-                await authstore.refresh(user.refresh_token);
-            }
-        }
-        return { Authorization: `Bearer ${authstore.user.access_token}` };
-    } 
-    return {};
+
+    const token = await useAuthStore().token();
+    return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 // Turn a failed response into an Error, keeping the body fields callers read for a code
@@ -138,9 +120,9 @@ function responseError(body, text, status) {
 
 async function handleResponse(response, receiveBinary, receivePage = false) {
     if (!response.ok) {
-        const { user, logout } = useAuthStore();
+        const { me, logout } = useAuthStore();
 
-        if ([401, 403].includes(response.status) && user) {
+        if ([401, 403].includes(response.status) && me) {
             logout(); // Logout on unauthorized access
         }
 

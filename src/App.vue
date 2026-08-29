@@ -1,14 +1,33 @@
 <script setup>
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { onMounted, onUnmounted, computed } from 'vue';
+import { onMounted, onUnmounted, computed, watch } from 'vue';
+import { useAuth } from '@clerk/vue';
 import { useAuthStore } from '@/stores';
 import { canSeeRole } from '@/helpers';
 
 const authStore = useAuthStore();
-const { user: authUser, me } = storeToRefs(authStore);
+const { me } = storeToRefs(authStore);
 const route = useRoute();
 const router = useRouter();
+
+// Clerk owns the session; the fetch wrapper reads its token through the store
+const clerk = useAuth();
+authStore.useClerkAuth(clerk);
+
+// /me carries the role, name and avatar the nav draws
+watch([clerk.isLoaded, clerk.isSignedIn], async ([loaded, signedIn]) => {
+    if (!loaded || authStore.user) return;  // the legacy admin token owns its own session
+    if (!signedIn) {
+        authStore.clear();
+        if (route.meta.role !== 'public') router.push('/login');
+        return;
+    }
+    const session = await authStore.fetchMe().catch(() => null);
+    if (session && route.path === '/login') {
+        router.push(session.role === 'admin' ? (authStore.returnUrl || '/') : '/profile');
+    }
+}, { immediate: true });
 
 const isReadonly = computed(() =>
     route.query.readonly === '1' || route.query.readonly === 'true'
@@ -35,7 +54,7 @@ onUnmounted(() => {
 });
 
 // the nav is drawn for a session on any route that does not opt out with meta.nav
-const showNavLinks = computed(() => !!authUser.value && route.meta.nav !== false);
+const showNavLinks = computed(() => !!me.value && route.meta.nav !== false);
 const showBar = computed(() => route.meta.bar !== false && !isReadonly.value);
 
 // a link is drawn only when the session role reaches the target route's meta.role

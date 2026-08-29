@@ -1,21 +1,22 @@
 import { defineStore } from 'pinia';
-import { jwtDecode } from "jwt-decode";
 
 import { fetchWrapper, router } from '@/helpers';
 
 const backendUrl = `${import.meta.env.VITE_BACKEND_URL}`
 
-let refreshing = null;  // one in-flight refresh shared by every caller
+let clerk = null;  // Clerk's useAuth(), handed over by App.vue where composables are legal
 
 export const useAuthStore = defineStore({
     id: 'auth',
     state: () => ({
-        // initialize state from local storage to enable user to stay logged in
-        user: JSON.parse(localStorage.getItem('user')),
+        user: JSON.parse(localStorage.getItem('user')),  // the legacy admin-token session only
         me: JSON.parse(localStorage.getItem('me')),
         returnUrl: null
     }),
     actions: {
+        useClerkAuth(auth) {
+            clerk = auth;
+        },
         // break-glass admin-token login, reached only from /login?legacy=1
         async login(token) {
             this.user = await fetchWrapper.post(`${backendUrl}/login`, { token });
@@ -24,49 +25,24 @@ export const useAuthStore = defineStore({
             localStorage.setItem('me', JSON.stringify(this.me));
             router.push(this.returnUrl || '/');
         },
-        // Discord callback tokens: /me is read first so a rejected member sees the error, not a logout
-        async startSession(tokens) {
-            const me = await this.fetchMe(tokens.access_token);
-            this.user = tokens;
-            localStorage.setItem('user', JSON.stringify(tokens));
-            return me;
+        // the legacy token wins; every other session sends the Clerk session JWT
+        async token() {
+            return this.user?.access_token || (clerk ? await clerk.getToken.value() : null);
         },
-        async fetchMe(accessToken) {
-            const response = await fetch(`${backendUrl}/me`, {
-                headers: { Authorization: `Bearer ${accessToken || this.user?.access_token}` }
-            });
-            const body = await response.json().catch(() => null);
-            if (!response.ok) throw new Error(body?.error || `Login failed (${response.status})`);
-
-            this.me = body;
-            localStorage.setItem('me', JSON.stringify(body));
-            return body;
+        async fetchMe() {
+            this.me = await fetchWrapper.get(`${backendUrl}/me`);
+            localStorage.setItem('me', JSON.stringify(this.me));
+            return this.me;
         },
-        async refresh(token) {
-            if (!refreshing) {
-                refreshing = fetchWrapper.post(`${backendUrl}/refresh`, { access_token: token })
-                    .then(user => {
-                        // keep the refresh token when the route only re-mints the access token
-                        this.user = { ...this.user, ...user };
-                        localStorage.setItem('user', JSON.stringify(this.user));
-                    })
-                    .finally(() => { refreshing = null; });
-            }
-            return refreshing;
-        },
-        isTokenExpired(token) {
-            if (!token) {
-                return true;
-            }
-            const payload = jwtDecode(token);
-            const currentTime = Math.floor(Date.now() / 1000);
-            return payload.exp && payload.exp < currentTime;
-        },
-        logout() {
+        clear() {
             this.user = null;
             this.me = null;
             localStorage.removeItem('user');
             localStorage.removeItem('me');
+        },
+        async logout() {
+            if (!this.user) await clerk?.signOut.value();  // the legacy token has no Clerk session
+            this.clear();
             router.push('/login');
         }
     }
