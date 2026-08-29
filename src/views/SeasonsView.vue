@@ -62,7 +62,7 @@
               <v-row>
                 <v-col cols="auto">
                   <v-btn
-                    :disabled="!isFileFormValid || isLoading"
+                    :disabled="isLoading"
                     @click="uploadFile"
                     color="primary"
                     variant="elevated"
@@ -399,7 +399,6 @@ import RowActions from '@/components/RowActions.vue';
 import { ref, onMounted } from 'vue';
 import { useSeasonStore, useMapStore } from '@/stores';
 
-defineOptions({ name: 'SeasonsView' });
 
 const seasonStore = useSeasonStore();
 const mapStore = useMapStore();
@@ -434,8 +433,6 @@ const tableHeader = [
   { title: 'Series/Week', value: 'series_per_week', sortable: true },
   { title: 'Actions', key: 'actions', align: 'end', sortable: false },
 ];
-
-const isFileFormValid = ref(() => !!file.value && (seasonId.value || (seasonName.value && seasonName.value.length > 0)));
 
 const fetchSeasons = async () => {
   isLoading.value = true;

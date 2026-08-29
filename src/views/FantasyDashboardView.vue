@@ -593,20 +593,15 @@
 </template>
 
 <script setup>
-import '@/assets/base.css';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useFantasyStore, useTeamStore, usePlayerStore, useConfigStore, useSeriesStore } from '@/stores';
-import { fetchWrapper } from '@/helpers';
-import RaceIcon from '@/components/RaceIcon.vue';
-import RaceSelect from '@/components/RaceSelect.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
 import { DateTime } from 'luxon';
 import { getW3CMMR } from '@/helpers/w3c-stats';
 import { resolveCurrentSeasonId, resolveCurrentW3CSeason } from '@/helpers/current-season';
 import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
 
-defineOptions({ name: 'FantasyDashboardView' });
 
 const route = useRoute();
 const fantasyStore = useFantasyStore();
@@ -620,7 +615,6 @@ const isSaving = ref(false);
 const isEditing = ref(false);
 const isBetSaving = ref(false);
 const isCreationEnabled = ref(true);
-const expandedPanels = ref([]); // Both panels collapsed by default
 const errorMessage = ref(null);
 const successMessage = ref(null);
 const playerToken = ref(null);
@@ -751,11 +745,6 @@ const populateTierSelectionsFromPlayerIds = (playerIds) => {
       }
     }
   });
-};
-
-const getPlayerName = (playerId) => {
-  const player = availablePlayers.value.find(p => p.id === playerId);
-  return player ? player.name : 'Unknown';
 };
 
 const fetchInitialData = async () => {
@@ -982,24 +971,18 @@ const submitTeam = async () => {
 // Fantasy betting functions
 const fetchFantasyData = async () => {
   if (!existingTeam.value || !teamForm.value.season_id) {
-    console.log('Skipping fantasy data fetch:', { 
-      hasTeam: !!existingTeam.value, 
-      seasonId: teamForm.value.season_id 
-    });
     return;
   }
 
   try {
     // Fetch fantasy series (where is_fantasy_match = true)
     await seriesStore.searchSeriesBySeason(teamForm.value.season_id, 'is_fantasy_match==True');
-    console.log('Fantasy series:', seriesStore.series);
     fantasySeries.value = seriesStore.series ?? [];
 
     // Fetch user's fantasy bets (if we have a user id)
     if (playerData.value?.user?.id) {
       const betsQuery = `season_id == ${teamForm.value.season_id} AND user_id == ${playerData.value.user.id}`;
       fantasyBets.value = await fantasyStore.searchBets(betsQuery);
-      console.log('Fantasy bets:', fantasyBets.value);
     }
   } catch (error) {
     console.error('Error fetching fantasy data:', error);
