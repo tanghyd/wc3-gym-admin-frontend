@@ -120,7 +120,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 // token validation/consumption is handled server-side via backend endpoints
-import { useSeasonStore, useConfigStore, usePlayerStore } from '@/stores';
+import { useSeasonStore, useConfigStore, usePlayerStore, useAuthStore } from '@/stores';
+import { fetchWrapper } from '@/helpers';
 import { storeToRefs } from 'pinia';
 
 const route = useRoute();
@@ -164,6 +165,7 @@ const battleTagRules = [
   v => (/^\S+#\d+$/.test(String(v || ''))) || 'BattleTag must be like Name#123456'
 ];
 
+const authStore = useAuthStore();
 const seasonStore = useSeasonStore();
 const configStore = useConfigStore();
 const playerStore = usePlayerStore();
@@ -171,6 +173,14 @@ const { seasons } = storeToRefs(seasonStore);
 
 onMounted(async () => {
   loading.value = true;
+  // a Discord session identifies the player instead of a one-shot token
+  if (!token.value && authStore.me) {
+    discordId.value = authStore.me.discord_id;
+    discordTag.value = authStore.me.name;
+    try { await seasonStore.fetchSeasons(); } catch (e) { /* ignore */ }
+    loading.value = false;
+    return;
+  }
   if (!token.value) {
     tokenInvalid.value = true;
     tokenInvalidReason.value = 'missing_token';
@@ -274,7 +284,7 @@ async function onSubmit() {
   try {
     // Build payload and call the new public signup endpoint which creates the user
     const payload = {
-      token: token.value,
+      token: token.value || undefined,
       name: name.value,
       battleTag: battleTag.value,
       country: country.value,
@@ -283,19 +293,12 @@ async function onSubmit() {
       season_id: selectedSignupSeasonId.value ? selectedSignupSeasonId.value : undefined
     };
     const backend = import.meta.env.VITE_BACKEND_URL || '';
-    const res = await fetch(`${backend}/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(txt || `Signup failed: ${res.status}`);
-    }
+    await fetchWrapper.post(`${backend}/signup`, payload);
 
     // user created on backend — end-user flow is complete; they can close the page
     success.value = true;
+    // the profile needs the new users row before it can show the dashboard
+    if (!token.value) await authStore.fetchMe();
   } catch (err) {
     console.log('Signup error:', err);
     submitError.value = (err && err.message) || (err && err.error) || String(err);

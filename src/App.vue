@@ -1,12 +1,13 @@
 <script setup>
-import { RouterLink, RouterView, useRoute } from 'vue-router';
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, computed } from 'vue';
 import { useAuthStore } from '@/stores';
 
 const authStore = useAuthStore();
-const { user: authUser } = storeToRefs(authStore);
+const { user: authUser, me } = storeToRefs(authStore);
 const route = useRoute();
+const router = useRouter();
 
 const isReadonly = computed(() =>
     route.query.readonly === '1' || route.query.readonly === 'true'
@@ -32,23 +33,30 @@ onUnmounted(() => {
     resizeObserver?.disconnect();
 });
 
-// show navigation links only for authenticated users on non-public routes
-const showNavLinks = () => {
-    if (!authStore.user) return false;
-    // hide on explicit public-only routes
-    if (route.path === '/signup' || route.path === '/player-dashboard' || route.path === '/fantasy-registration' || route.path === '/koth/dashboard' || route.path === '/random-stats') return false;
-    return true;
-}
+// the nav is drawn for a session on any route that does not opt out with meta.nav
+const showNavLinks = computed(() => !!authUser.value && route.meta.nav !== false);
+const showBar = computed(() => route.meta.bar !== false && !isReadonly.value);
+
+// a link is drawn only when the session role reaches the target route's meta.role
+const canSee = (path) => router.resolve(path).meta.role !== 'admin' || me.value?.role === 'admin';
+
+const avatarUrl = computed(() => me.value?.avatar
+    ? `https://cdn.discordapp.com/avatars/${me.value.discord_id}/${me.value.avatar}.png`
+    : null);
+const initials = computed(() => (me.value?.name || '?').slice(0, 2).toUpperCase());
 </script>
 
 <template>
     <v-app> 
-    <v-app-bar v-if="route.path !== '/koth/dashboard' && route.path !== '/random-stats' && route.query.readonly !== '1' && route.query.readonly !== 'true'">
+    <v-app-bar v-if="showBar">
             <v-app-bar-title>GNL APP</v-app-bar-title>
             <template v-slot:append>
-                <v-list v-show="showNavLinks()" class="inline-nav" nav>
-                    <v-list-item class="nav-link-item">
+                <v-list v-show="showNavLinks" class="inline-nav" nav>
+                    <v-list-item v-if="canSee('/')" class="nav-link-item">
                         <RouterLink to="/" class="nav-link">Home</RouterLink>
+                    </v-list-item>
+                    <v-list-item class="nav-link-item">
+                        <RouterLink to="/profile" class="nav-link">Profile</RouterLink>
                     </v-list-item>
                     <v-menu offset-y>
                         <template v-slot:activator="{ props }">
@@ -69,7 +77,7 @@ const showNavLinks = () => {
                             <v-list-item>
                                 <RouterLink to="/teams">Teams</RouterLink>
                             </v-list-item>
-                            <v-list-item>
+                            <v-list-item v-if="canSee('/maps')">
                                 <RouterLink to="/maps">Maps</RouterLink>
                             </v-list-item>
                             <v-list-item>
@@ -96,32 +104,38 @@ const showNavLinks = () => {
                             <v-list-item>
                                 <RouterLink to="/fantasy">Leaderboard</RouterLink>
                             </v-list-item>
-                            <v-list-item>
+                            <v-list-item v-if="canSee('/fantasy/bets')">
                                 <RouterLink to="/fantasy/bets">Manage Bets</RouterLink>
                             </v-list-item>
-                            <v-list-item>
+                            <v-list-item v-if="canSee('/fantasy/tiers')">
                                 <RouterLink to="/fantasy/tiers">Player Tiers</RouterLink>
                             </v-list-item>
                         </v-list>
                     </v-menu>
-                    <v-list-item class="nav-link-item">
+                    <v-list-item v-if="canSee('/koth')" class="nav-link-item">
                         <RouterLink to="/koth" class="nav-link">KOTH</RouterLink>
                     </v-list-item>
-                    <v-list-item class="nav-link-item">
+                    <v-list-item v-if="canSee('/config')" class="nav-link-item">
                         <RouterLink to="/config" class="nav-link">Config</RouterLink>
                     </v-list-item>
-                    <v-list-item class="nav-link-item">
+                    <v-list-item v-if="canSee('/user-guide')" class="nav-link-item">
                         <RouterLink to="/user-guide" class="nav-link">User Guide</RouterLink>
                     </v-list-item>
-                    <v-list-item>
-                        <v-btn 
-                            append-icon="mdi-logout"
-                            @click="authStore.logout()"
-                            color="black"
-                            variant="tonal">
-                            Logout
-                        </v-btn> 
-                    </v-list-item>
+                    <v-menu offset-y>
+                        <template v-slot:activator="{ props }">
+                            <v-list-item v-bind="props" class="nav-link-item">
+                                <v-avatar size="36" color="primary">
+                                    <v-img v-if="avatarUrl" :src="avatarUrl" alt="" />
+                                    <span v-else>{{ initials }}</span>
+                                </v-avatar>
+                            </v-list-item>
+                        </template>
+                        <v-list>
+                            <v-list-item :title="me?.name" :subtitle="me?.role" />
+                            <v-divider />
+                            <v-list-item prepend-icon="mdi-logout" title="Logout" @click="authStore.logout()" />
+                        </v-list>
+                    </v-menu>
                 </v-list>               
             </template>
         </v-app-bar>  

@@ -369,6 +369,8 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { fetchWrapper, pageQuery, PAGE_LIMIT } from '@/helpers';
+import { authHeader } from '@/helpers/fetch-wrapper';
+import { useAuthStore } from '@/stores';
 import { getW3CMMR } from '@/helpers/w3c-stats';
 import SimpleTimePicker from '@/components/SimpleTimePicker.vue';
 import SimpleDatePicker from '@/components/SimpleDatePicker.vue';
@@ -414,6 +416,10 @@ const page = ref(1);
 const itemsPerPage = ref(25);
 const sortBy = ref([]);  // Vuetify single sort: [] or [{ key, order }]
 const token = ref(null);
+const authStore = useAuthStore();
+
+// the session drives the routes when there is no ?token=; the backend reads the id from the bearer
+const hasAccess = () => !!token.value || !!authStore.me;
 
 // Schedule / Result dialog state
 const scheduleDialog = ref(false);
@@ -461,20 +467,23 @@ const fetchPlayerData = async () => {
   
   try {
     token.value = route.query.token;
-    
-    if (!token.value) {
+
+    if (!hasAccess()) {
       errorMessage.value = 'No access token provided';
       return;
     }
 
     // Validate token first
-    const tokenResponse = await fetchWrapper.get(`${backendUrl}/public-token/${token.value}`);
-    if (tokenResponse.access_type !== 'dashboard') {
-      errorMessage.value = 'Invalid access token type';
-      return;
+    if (token.value) {
+      const tokenResponse = await fetchWrapper.get(`${backendUrl}/public-token/${token.value}`);
+      if (tokenResponse.access_type !== 'dashboard') {
+        errorMessage.value = 'Invalid access token type';
+        return;
+      }
     }
 
-    const seriesUrl = (limit, offset) => `${backendUrl}/player-series?token=${encodeURIComponent(token.value)}&${pageQuery({
+    const tokenParam = token.value ? `token=${encodeURIComponent(token.value)}&` : '';
+    const seriesUrl = (limit, offset) => `${backendUrl}/player-series?${tokenParam}${pageQuery({
       limit,
       offset,
       sort: sortBy.value[0]?.key,
@@ -532,12 +541,12 @@ const fetchPlayerData = async () => {
 
 // The table controls drive the page state
 watch([page, itemsPerPage], () => {
-  if (token.value) fetchPlayerData();
+  if (hasAccess()) fetchPlayerData();
 });
 
 // A header click reloads from the first page in the new order
 watch(sortBy, () => {
-  if (!token.value) return;
+  if (!hasAccess()) return;
   if (page.value === 1) {
     fetchPlayerData();
   } else {
@@ -632,12 +641,14 @@ const saveSchedule = async () => {
     }
 
     const formData = new FormData();
-    formData.append('token', token.value);
+    if (token.value) formData.append('token', token.value);
     if (utcDateTime) formData.append('date_time', utcDateTime);
     formData.append('action', 'scheduled');
 
-    const response = await fetch(`${backendUrl}/player-series/${scheduleSeries.value.id}`, {
+    const url = `${backendUrl}/player-series/${scheduleSeries.value.id}`;
+    const response = await fetch(url, {
       method: 'PUT',
+      headers: await authHeader('PUT', url),
       body: formData
     });
 
@@ -704,7 +715,7 @@ const saveResult = async () => {
     }
 
     const formData = new FormData();
-    formData.append('token', token.value);
+    if (token.value) formData.append('token', token.value);
     formData.append('player1_score', p1);
     formData.append('player2_score', p2);
     formData.append('action', 'score_updated');
@@ -713,8 +724,10 @@ const saveResult = async () => {
     if (hasGame2File) formData.append('game2', scoreSeries.value.game2File);
     if (hasGame3File) formData.append('game3', scoreSeries.value.game3File);
 
-    const response = await fetch(`${backendUrl}/player-series/${scoreSeries.value.id}`, {
+    const url = `${backendUrl}/player-series/${scoreSeries.value.id}`;
+    const response = await fetch(url, {
       method: 'PUT',
+      headers: await authHeader('PUT', url),
       body: formData
     });
 
