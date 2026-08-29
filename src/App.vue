@@ -104,6 +104,9 @@ const initials = computed(() => (me.value?.name || '?').slice(0, 2).toUpperCase(
                             <v-list-item>
                                 <RouterLink to="/fantasy">Leaderboard</RouterLink>
                             </v-list-item>
+                            <v-list-item>
+                                <RouterLink to="/fantasy-registration">My Fantasy Team</RouterLink>
+                            </v-list-item>
                             <v-list-item v-if="canSee('/fantasy/bets')">
                                 <RouterLink to="/fantasy/bets">Manage Bets</RouterLink>
                             </v-list-item>

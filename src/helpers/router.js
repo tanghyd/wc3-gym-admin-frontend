@@ -16,7 +16,7 @@ export const router = createRouter({
         { path: '/seasons', component: SeasonsView, meta: { role: 'member' } },
         { path: '/signup', component: PublicSignupView, meta: { role: 'public', nav: false } },
         { path: '/player-dashboard', component: PlayerDashboardView, meta: { role: 'public', nav: false } },
-        { path: '/fantasy-registration', component: FantasyDashboardView, meta: { role: 'public', nav: false } },
+        { path: '/fantasy-registration', component: FantasyDashboardView, meta: { role: 'public' } },
         { path: '/players', component: PlayersView, meta: { role: 'member' } },
         { path: '/seasons/:id', component: SeasonDetailsView, meta: { role: 'member' } },
         { path: '/seasons/:id/assign', component: SeasonTeamAssignView, meta: { role: 'admin' } },

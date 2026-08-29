@@ -31,7 +31,6 @@ onMounted(async () => {
     <v-container fluid class="pa-4 d-flex align-center justify-center" style="min-height: 80vh;">
         <v-card elevation="2" max-width="500" width="100%">
             <v-card-title class="bg-primary">
-                <v-icon class="mr-2">mdi-discord</v-icon>
                 Signing in
             </v-card-title>
             <v-card-text class="pt-6">
