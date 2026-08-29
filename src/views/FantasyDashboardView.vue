@@ -757,6 +757,7 @@ const fetchInitialData = async () => {
       const setting = await configStore.fetchSetting('fantasy_team_creation_enabled');
       isCreationEnabled.value = setting && setting.value && setting.value.toLowerCase() === 'true';
     } catch (err) {
+      console.log('Could not check fantasy_team_creation_enabled setting, defaulting to disabled...');
       isCreationEnabled.value = false;
     }
 
@@ -774,6 +775,7 @@ const fetchInitialData = async () => {
       const maxBetPointsSetting = await configStore.fetchSetting('fantasy_max_bet_points');
       maxBetPoints.value = maxBetPointsSetting && maxBetPointsSetting.value ? parseInt(maxBetPointsSetting.value) : null;
     } catch (err) {
+      console.log('Could not load bet points settings, using defaults...');
       useFixedBetPoints.value = false;
       fixedBetPointsValue.value = 0;
       minBetPoints.value = null;

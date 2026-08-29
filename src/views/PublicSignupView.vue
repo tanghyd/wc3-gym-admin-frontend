@@ -190,7 +190,8 @@ onMounted(async () => {
         loading.value = false;
         return;
       }
-    } catch (err) {  // signups stay open when the setting cannot be read
+    } catch (err) {
+      console.log('Could not check signups_enabled setting, continuing...');
     }
     
     // Use the public token endpoint (updated API): /public-token/<token>
@@ -224,7 +225,8 @@ onMounted(async () => {
           if (existing.country) country.value = existing.country;
           if (existing.race) race.value = existing.race;
         }
-      } catch (e) {  // prefill is optional
+      } catch (e) {
+        console.log('Could not prefetch existing user data:', e);
       }
     }
 
@@ -247,7 +249,8 @@ onMounted(async () => {
           const signups = await seasonStore.fetchSeasonSignups(selectedSignupSeasonId.value);
           alreadySignedUp.value = Array.isArray(signups) &&
             signups.some(u => String(u.discordId) === String(discordId.value));
-        } catch (e) {  // signup check is optional
+        } catch (e) {
+          console.log('Could not check existing signups:', e);
         }
       }
     }
@@ -294,6 +297,7 @@ async function onSubmit() {
     // user created on backend — end-user flow is complete; they can close the page
     success.value = true;
   } catch (err) {
+    console.log('Signup error:', err);
     submitError.value = (err && err.message) || (err && err.error) || String(err);
   } finally {
     submitting.value = false;
