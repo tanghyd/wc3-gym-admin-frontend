@@ -62,7 +62,7 @@
               <v-row>
                 <v-col cols="auto">
                   <v-btn
-                    :disabled="isLoading"
+                    :disabled="!canUpload || isLoading"
                     @click="uploadFile"
                     color="primary"
                     variant="elevated"
@@ -386,7 +386,7 @@
 <script setup>
 import RowActions from '@/components/RowActions.vue';
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useSeasonStore, useMapStore } from '@/stores';
 
 
@@ -401,6 +401,7 @@ const uploadMessage = ref(null);
 const seasonName = ref(null);
 const seasonId = ref(null);
 const file = ref(null);
+const canUpload = computed(() => !!file.value && (!!seasonId.value || !!seasonName.value));
 
 const newSeason = ref(null);
 const newSeasonMapIds = ref([]);
