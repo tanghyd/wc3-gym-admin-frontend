@@ -35,7 +35,7 @@
                 <v-spacer />
                 <v-col cols="12" sm="auto">
                   <v-btn variant="elevated" color="success" prepend-icon="mdi-plus" @click="openAdd" block>
-                    Add admin
+                    Add Admin
                   </v-btn>
                 </v-col>
               </v-row>
@@ -111,7 +111,7 @@
 
     <ConfirmDeleteDialog
       v-model="showDeleteDialog"
-      message="Remove this admin? They keep their Discord roles."
+      message="Remove this admin?"
       @confirm="confirmDelete"
       @cancel="showDeleteDialog = false"
     />

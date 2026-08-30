@@ -12,7 +12,7 @@
                         ref="passwordField"
                         v-model="password"
                         name="password"
-                        label="Password"
+                        label="Admin token"
                         type="password"
                         variant="outlined"
                         prepend-inner-icon="mdi-lock-outline"
@@ -30,7 +30,7 @@
                         :disabled="isSubmitting"
                         class="mt-4"
                     >
-                        Login
+                        Log in
                     </v-btn>
 
                     <v-alert
