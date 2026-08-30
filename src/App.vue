@@ -3,6 +3,7 @@ import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, computed } from 'vue';
 import { useAuthStore } from '@/stores';
+import w3cLogo from '@/assets/media/w3c-logo.png';
 
 const authStore = useAuthStore();
 const { user: authUser } = storeToRefs(authStore);
@@ -79,7 +80,7 @@ const showNavLinks = () => {
                                 <RouterLink to="/report">Season Report</RouterLink>
                             </v-list-item>
                             <v-list-item>
-                                <RouterLink to="/ladder">W3C Ladder</RouterLink>
+                                <RouterLink to="/ladder" class="d-inline-flex align-center"><img :src="w3cLogo" height="22" alt="W3C" class="mr-1">Ladder</RouterLink>
                             </v-list-item>
                         </v-list>
                     </v-menu>
