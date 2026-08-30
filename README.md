@@ -1,5 +1,7 @@
 # GNL Admin Frontend
 
+> **This fork is the self-hosted line.** It builds a static image that the Azure staging box serves behind nginx, with the admin-token login only. Day-to-day development happens on `Warcraft-Gym/wc3-gym-frontend`, which deploys to Vercel with Clerk sign-in; changes are not mirrored here. Paused 2026-08-30 to keep a deployable snapshot that needs no cloud services. The box belongs to the backend fork (`deploy/README.md` there); `just deploy` here pins this image on it.
+
 Vue.js-based dashboard for managing GNL esports leagues, including team management, match scheduling, fantasy betting, and player statistics. Built with Vue 3, Vuetify 3, and Vite.
 
 ## Prerequisites
@@ -39,6 +41,20 @@ The application will be available at:
 - **Backend API (proxy):** http://localhost:5002
 
 **Note:** The dev server is configured to proxy API requests to `http://localhost:5002`. Ensure the GNL backend is running before accessing the frontend.
+
+## Deploy to the Azure staging box
+
+The "Staging image" workflow builds `ghcr.io/tanghyd/gnl-admin-frontend:staging` (and `:sha-<commit>`) on every push to main. The box, its Postgres, nginx and the backend image belong to the backend repo (`deploy/README.md` there); this repo only pins its own image on that box. Needs [just](https://github.com/casey/just) and SSH access to the box.
+
+```bash
+echo AZURE_STAGING_HOST=$(cd ../backend && just terraform output fqdn) > .env.local
+just deploy                 # the current :staging image
+just deploy sha-1a2b3c4d    # one named build, for a pin or a rollback
+just status                 # the pinned tag and the container
+just --list                 # tags, check-image-exists, ci, build-image, upload-image, logs
+```
+
+The built files call the backend at `VITE_BACKEND_URL=/api` (committed in `.env`), which nginx on the box proxies to the backend, so no build argument is needed.
 
 ## Docker Development Setup
 
