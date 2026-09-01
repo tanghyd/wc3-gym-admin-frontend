@@ -1,6 +1,6 @@
 # GNL Admin Frontend
 
-> **This fork is the self-hosted line.** It builds a static image that the Azure staging box serves behind nginx. Day-to-day development happens on `Warcraft-Gym/wc3-gym-frontend`, which deploys to Vercel with Clerk sign-in; changes are not mirrored here. Paused 2026-08-30 to keep a deployable snapshot that needs no cloud services. The box belongs to the backend fork (`deploy/README.md` there); `just deploy` here pins this image on it.
+> **This fork is the self-hosted line and carries the admin-token login only.** It builds a static image that the Azure staging box serves behind nginx. Day-to-day development happens on `Warcraft-Gym/wc3-gym-frontend`, which deploys to Vercel with Clerk sign-in; changes are not mirrored here. Paused 2026-08-30 to keep a deployable snapshot that needs no cloud services. The box belongs to the backend fork (`deploy/README.md` there); `just deploy` here pins this image on it.
 
 Vue.js-based dashboard for managing GNL esports leagues, including team management, match scheduling, fantasy betting, and player statistics. Built with Vue 3, Vuetify 3, and Vite.
 

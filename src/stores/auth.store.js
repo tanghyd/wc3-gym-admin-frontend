@@ -32,7 +32,7 @@ export const useAuthStore = defineStore({
             // store user details and jwt in local storage to keep user logged in between page refreshes
             localStorage.setItem('user', JSON.stringify(user));
         },
-    	isTokenExpired(token) {
+        isTokenExpired(token) {
             if (!token) {
                 return true;
             }

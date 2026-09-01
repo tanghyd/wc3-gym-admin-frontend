@@ -121,7 +121,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 // token validation/consumption is handled server-side via backend endpoints
 import { useSeasonStore, useConfigStore, usePlayerStore } from '@/stores';
-import { storeToRefs } from 'pinia';
 
 const route = useRoute();
 const token = ref(route.query.token || '');
@@ -167,7 +166,6 @@ const battleTagRules = [
 const seasonStore = useSeasonStore();
 const configStore = useConfigStore();
 const playerStore = usePlayerStore();
-const { seasons } = storeToRefs(seasonStore);
 
 onMounted(async () => {
   loading.value = true;

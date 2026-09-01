@@ -1,12 +1,10 @@
 <script setup>
 import { RouterLink, RouterView, useRoute } from 'vue-router';
-import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, computed } from 'vue';
 import { useAuthStore } from '@/stores';
 import w3cLogo from '@/assets/media/w3c-logo.png';
 
 const authStore = useAuthStore();
-const { user: authUser } = storeToRefs(authStore);
 const route = useRoute();
 
 const isReadonly = computed(() =>
