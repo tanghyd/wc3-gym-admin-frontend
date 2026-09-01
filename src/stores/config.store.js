@@ -77,43 +77,6 @@ export const useConfigStore = defineStore({
             }
         },
 
-        async fetchDiscordRoleReport() {
-            return await fetchWrapper.get(`${backendUrl}/config/discord-roles`);
-        },
-
-        // Without user_ids the backend syncs every account the report flags
-        async syncDiscordRoles(user_ids) {
-            return await fetchWrapper.post(`${backendUrl}/config/discord-roles/sync`, user_ids ? { user_ids } : {});
-        },
-
-        async fetchAdmins() {
-            return await fetchWrapper.get(`${backendUrl}/config/admins`);
-        },
-
-        async addAdmin({ discord_id, name }) {
-            return await fetchWrapper.post(`${backendUrl}/config/admins`, { discord_id, name });
-        },
-
-        async removeAdmin(discord_id) {
-            await fetchWrapper.delete(`${backendUrl}/config/admins/${discord_id}`);
-        },
-
-        async fetchDiscordRoleBindings() {
-            return await fetchWrapper.get(`${backendUrl}/config/discord-role-bindings`);
-        },
-
-        async createDiscordRoleBinding(binding) {
-            return await fetchWrapper.post(`${backendUrl}/config/discord-role-bindings`, binding);
-        },
-
-        async updateDiscordRoleBinding(id, binding) {
-            return await fetchWrapper.put(`${backendUrl}/config/discord-role-bindings/${id}`, binding);
-        },
-
-        async deleteDiscordRoleBinding(id) {
-            await fetchWrapper.delete(`${backendUrl}/config/discord-role-bindings/${id}`);
-        },
-
         async generateKothNightbotToken() {
             this.isLoading = true;
             this.error = null;

@@ -67,7 +67,7 @@
               <v-row align="center" class="flex-wrap ma-0 pa-2">
                 <v-spacer />
                 <v-col cols="12" sm="auto">
-                  <v-btn v-if="auth.isAdmin" variant="elevated" color="primary" prepend-icon="mdi-plus" @click="openCreateNew" block>
+                  <v-btn variant="elevated" color="primary" prepend-icon="mdi-plus" @click="openCreateNew" block>
                     Add New Player
                   </v-btn>
                 </v-col>
@@ -144,7 +144,7 @@
         <v-icon size="64" color="grey-lighten-1">mdi-account-off</v-icon>
         <div class="text-h6 text-grey mt-4 mb-2">No players found</div>
         <p class="text-grey-darken-1 mb-4">Get started by adding your first player</p>
-        <v-btn v-if="auth.isAdmin" variant="elevated" color="primary" prepend-icon="mdi-plus" @click="openCreateNew">
+        <v-btn variant="elevated" color="primary" prepend-icon="mdi-plus" @click="openCreateNew">
           Add First Player
         </v-btn>
       </v-card-text>
@@ -254,7 +254,6 @@
           <v-spacer />
           <v-btn @click="cancelAddNewPlayer">Cancel</v-btn>
           <v-btn
-            v-if="auth.isAdmin"
             @click="createNewPlayer"
             color="primary"
             variant="elevated"
@@ -371,7 +370,7 @@
         <v-card-actions>
           <v-spacer />
           <v-btn @click="cancelEdit">Cancel</v-btn>
-          <v-btn v-if="auth.isAdmin" @click="updatePlayer" color="primary" variant="elevated" prepend-icon="mdi-content-save">
+          <v-btn @click="updatePlayer" color="primary" variant="elevated" prepend-icon="mdi-content-save">
             Save Changes
           </v-btn>
         </v-card-actions>
@@ -390,7 +389,7 @@
         <v-card-actions>
           <v-spacer />
           <v-btn @click="cancelDeleteDialog" variant="text">Cancel</v-btn>
-          <v-btn v-if="auth.isAdmin" @click="confirmDelete" color="error" variant="elevated" prepend-icon="mdi-delete">
+          <v-btn @click="confirmDelete" color="error" variant="elevated" prepend-icon="mdi-delete">
             Delete
           </v-btn>
         </v-card-actions>
@@ -409,7 +408,7 @@
 </template>
 <script setup>
 import RowActions from '@/components/RowActions.vue';
-import { useAuthStore, usePlayerStore, useSeasonStore } from '@/stores';
+import { usePlayerStore, useSeasonStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { onMounted, ref, computed } from 'vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
@@ -447,7 +446,6 @@ const newPlayer = ref({
 const selectedSignupSeasonIdsNew = ref([]);
 const playerStore = usePlayerStore();
 const seasonStore = useSeasonStore();
-const auth = useAuthStore();
 const { players } = storeToRefs(playerStore);
 const { seasons } = storeToRefs(seasonStore);
 // filter for season in the grid

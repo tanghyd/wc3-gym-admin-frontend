@@ -6,21 +6,7 @@
   <v-container fluid class="pa-4">
     <v-row class="mb-4">
       <v-col>
-        <h1 v-if="playerData" class="d-flex align-center ga-3">
-          <v-avatar size="48" color="primary">
-            <v-img v-if="authStore.me?.avatar" :src="authStore.me.avatar" alt="" />
-            <span v-else>{{ (playerData.player.name || '?').slice(0, 2).toUpperCase() }}</span>
-          </v-avatar>
-          <PlayerName :player="playerData.player" :race="playerData.player.race" @click.stop="showPlayerDetails(playerData.player)">
-            <a :href="w3cPlayerUrl(playerData.player.battleTag)" target="_blank" rel="noopener noreferrer" class="text-body-1 text-decoration-none ml-2">
-              {{ playerData.player.battleTag }} <W3CIcon :size="16" />
-            </a>
-          </PlayerName>
-          <v-chip v-if="authStore.me?.team" color="primary" variant="tonal" size="small" prepend-icon="mdi-shield-star">
-            Captain · {{ authStore.me.team.name }}
-          </v-chip>
-        </h1>
-        <h1 v-else>Player Dashboard</h1>
+        <h1><v-icon class="mr-2">mdi-view-dashboard</v-icon> Player Dashboard</h1>
       </v-col>
     </v-row>
 
@@ -55,19 +41,18 @@
         Player Information
       </v-card-title>
       <v-card-text class="pt-4">
-        <v-alert v-if="needsSignup" type="info" variant="tonal" border="start" class="mb-4">
-          <div class="d-flex align-center justify-space-between flex-wrap ga-2">
-            <span>Not signed up for {{ seasonLabel }}</span>
-            <v-btn color="primary" variant="elevated" size="small" @click="router.push('/signup')">Sign up</v-btn>
-          </div>
-        </v-alert>
         <v-chip color="secondary" class="mb-2">
           {{ playerData.discord_tag }}
         </v-chip>
-        <p><strong><W3CMmr /></strong> {{ getW3CMMR(playerData.player, null) }}</p>
-        <v-chip v-if="playerData.player.timezone" size="small" variant="tonal" prepend-icon="mdi-clock-outline">
-          {{ playerData.player.timezone }}
-        </v-chip>
+        <h2 class="text-h5 mb-2">
+          <a href="#" @click.prevent="showPlayerDetails(playerData.player)" class="text-decoration-none text-primary">
+            {{ playerData.player.name }}
+          </a>
+        </h2>
+        <p><strong>Battle Tag:</strong> {{ playerData.player.battleTag }}</p>
+        <p><strong>Race:</strong> {{ playerData.player.race }}</p>
+        <p><strong>MMR:</strong> {{ getW3CMMR(playerData.player, null) }}</p>
+        <p v-if="playerData.player.country"><strong>Country:</strong> {{ playerData.player.country }}</p>
       </v-card-text>
     </v-card>
 
@@ -97,11 +82,22 @@
         item-value="id"
       >
         <template #item.opponent="{ item }">
-          <PlayerName
-            :player="opponent(item)"
-            :race="opponent(item).race"
-            @click.stop="showPlayerDetails(opponent(item))"
-          />
+          <span v-if="item.player1_id === playerData.player.id">
+            <a href="#" @click.prevent="showPlayerDetails(item.player2)" class="text-decoration-none">
+              {{ item.player2?.name || `Player ${item.player2_id}` }}
+            </a>
+            <div class="text-caption text-grey">
+              {{ item.player2?.race }} · {{ getW3CMMR(item.player2, currentW3CSeason) }}
+            </div>
+          </span>
+          <span v-else>
+            <a href="#" @click.prevent="showPlayerDetails(item.player1)" class="text-decoration-none">
+              {{ item.player1?.name || `Player ${item.player1_id}` }}
+            </a>
+            <div class="text-caption text-grey">
+              {{ item.player1?.race }} · {{ getW3CMMR(item.player1, currentW3CSeason) }}
+            </div>
+          </span>
         </template>
 
         <template #item.score="{ item }">
@@ -112,10 +108,6 @@
           >
             {{ item.player1_score || 0 }} - {{ item.player2_score || 0 }}
           </v-chip>
-        </template>
-
-        <template #item.season="{ item }">
-          {{ item.match?.season?.name || '' }}
         </template>
 
         <template #item.date_time="{ item }">
@@ -167,12 +159,23 @@
               <div>
                 <div class="text-caption text-grey">Opponent</div>
                 <div class="text-h6">
-                  <PlayerName
-                    :player="opponent(item)"
-                    :race="opponent(item).race"
-                    @click.stop="showPlayerDetails(opponent(item))"
-                  />
-                        </div>
+                  <span v-if="item.player1_id === playerData.player.id">
+                    <a href="#" @click.prevent="showPlayerDetails(item.player2)" class="text-decoration-none">
+                      {{ item.player2?.name || `Player ${item.player2_id}` }}
+                    </a>
+                    <div class="text-caption text-grey">
+                      {{ item.player2?.race }} · {{ getW3CMMR(item.player2, currentW3CSeason) }}
+                    </div>
+                  </span>
+                  <span v-else>
+                    <a href="#" @click.prevent="showPlayerDetails(item.player1)" class="text-decoration-none">
+                      {{ item.player1?.name || `Player ${item.player1_id}` }}
+                    </a>
+                    <div class="text-caption text-grey">
+                      {{ item.player1?.race }} · {{ getW3CMMR(item.player1, currentW3CSeason) }}
+                    </div>
+                  </span>
+                </div>
               </div>
               <v-chip
                 :color="getScoreColor(item)"
@@ -183,11 +186,6 @@
             </div>
 
             <v-divider class="my-3"></v-divider>
-
-            <div class="mb-2">
-              <div class="text-caption text-grey">Season</div>
-              <div>{{ item.match?.season?.name || '' }}</div>
-            </div>
 
             <div class="mb-2">
               <div class="text-caption text-grey">Date & Time</div>
@@ -369,16 +367,12 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { fetchWrapper, pageQuery, PAGE_LIMIT } from '@/helpers';
-import { authHeader } from '@/helpers/fetch-wrapper';
-import { useAuthStore, useSeasonStore } from '@/stores';
 import { getW3CMMR } from '@/helpers/w3c-stats';
 import SimpleTimePicker from '@/components/SimpleTimePicker.vue';
 import SimpleDatePicker from '@/components/SimpleDatePicker.vue';
 import PlayerDetailsDialog from '@/components/PlayerDetailsDialog.vue';
-import W3CIcon from '@/components/W3CIcon.vue';
-import W3CMmr from '@/components/W3CMmr.vue';
 import { DateTime } from 'luxon';
 import { formatDateTime } from '@/helpers/datetime';
 import { useDisplay } from 'vuetify';
@@ -386,7 +380,6 @@ import { resolveCurrentW3CSeason } from '@/helpers/current-season';
 
 
 const route = useRoute();
-const router = useRouter();
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const { mobile } = useDisplay();
 
@@ -414,14 +407,6 @@ const showPlayerDetails = (player) => {
 const isLoading = ref(true);
 const errorMessage = ref(null);
 const successMessage = ref(null);
-const w3cPlayerUrl = (battleTag) => `https://www.w3champions.com/player/${encodeURIComponent(battleTag)}`;
-
-// the other side of a series; the id is the fallback when the payload carries no player row
-const opponent = (item) => {
-  const mine = item.player1_id === playerData.value?.player?.id;
-  return (mine ? item.player2 : item.player1) || { name: `Player ${mine ? item.player2_id : item.player1_id}` };
-};
-
 const playerData = ref(null);
 const series = ref([]);
 const totalSeries = ref(0);
@@ -429,17 +414,6 @@ const page = ref(1);
 const itemsPerPage = ref(25);
 const sortBy = ref([]);  // Vuetify single sort: [] or [{ key, order }]
 const token = ref(null);
-const authStore = useAuthStore();
-
-// the session drives the routes when there is no ?token=; the backend reads the id from the bearer
-const hasAccess = () => !!token.value || !!authStore.me;
-
-// /me answers whether the session has a signup for the current GNL season
-const seasonStore = useSeasonStore();
-const needsSignup = computed(() => authStore.me?.signed_up === false && !!authStore.me?.season_id);
-const seasonLabel = computed(() =>
-  seasonStore.seasons.find(s => s.id === authStore.me?.season_id)?.name || `GNL Season ${authStore.me?.season_id}`
-);
 
 // Schedule / Result dialog state
 const scheduleDialog = ref(false);
@@ -472,7 +446,6 @@ const rules = {
 // The server sorts date_time and week; opponent and score are computed per side here
 const headers = [
   { title: 'Opponent', key: 'opponent', sortable: false },
-  { title: 'Season', key: 'season', sortable: false },
   { title: 'Date & Time', key: 'date_time', sortable: true },
   { title: 'Score', key: 'score', sortable: false },
   { title: 'Week', key: 'week', sortable: true },
@@ -488,23 +461,20 @@ const fetchPlayerData = async () => {
   
   try {
     token.value = route.query.token;
-
-    if (!hasAccess()) {
+    
+    if (!token.value) {
       errorMessage.value = 'No access token provided';
       return;
     }
 
     // Validate token first
-    if (token.value) {
-      const tokenResponse = await fetchWrapper.get(`${backendUrl}/public-token/${token.value}`);
-      if (tokenResponse.access_type !== 'dashboard') {
-        errorMessage.value = 'Invalid access token type';
-        return;
-      }
+    const tokenResponse = await fetchWrapper.get(`${backendUrl}/public-token/${token.value}`);
+    if (tokenResponse.access_type !== 'dashboard') {
+      errorMessage.value = 'Invalid access token type';
+      return;
     }
 
-    const tokenParam = token.value ? `token=${encodeURIComponent(token.value)}&` : '';
-    const seriesUrl = (limit, offset) => `${backendUrl}/player-series?${tokenParam}${pageQuery({
+    const seriesUrl = (limit, offset) => `${backendUrl}/player-series?token=${encodeURIComponent(token.value)}&${pageQuery({
       limit,
       offset,
       sort: sortBy.value[0]?.key,
@@ -562,12 +532,12 @@ const fetchPlayerData = async () => {
 
 // The table controls drive the page state
 watch([page, itemsPerPage], () => {
-  if (hasAccess()) fetchPlayerData();
+  if (token.value) fetchPlayerData();
 });
 
 // A header click reloads from the first page in the new order
 watch(sortBy, () => {
-  if (!hasAccess()) return;
+  if (!token.value) return;
   if (page.value === 1) {
     fetchPlayerData();
   } else {
@@ -662,14 +632,12 @@ const saveSchedule = async () => {
     }
 
     const formData = new FormData();
-    if (token.value) formData.append('token', token.value);
+    formData.append('token', token.value);
     if (utcDateTime) formData.append('date_time', utcDateTime);
     formData.append('action', 'scheduled');
 
-    const url = `${backendUrl}/player-series/${scheduleSeries.value.id}`;
-    const response = await fetch(url, {
+    const response = await fetch(`${backendUrl}/player-series/${scheduleSeries.value.id}`, {
       method: 'PUT',
-      headers: await authHeader('PUT', url),
       body: formData
     });
 
@@ -736,7 +704,7 @@ const saveResult = async () => {
     }
 
     const formData = new FormData();
-    if (token.value) formData.append('token', token.value);
+    formData.append('token', token.value);
     formData.append('player1_score', p1);
     formData.append('player2_score', p2);
     formData.append('action', 'score_updated');
@@ -745,10 +713,8 @@ const saveResult = async () => {
     if (hasGame2File) formData.append('game2', scoreSeries.value.game2File);
     if (hasGame3File) formData.append('game3', scoreSeries.value.game3File);
 
-    const url = `${backendUrl}/player-series/${scoreSeries.value.id}`;
-    const response = await fetch(url, {
+    const response = await fetch(`${backendUrl}/player-series/${scoreSeries.value.id}`, {
       method: 'PUT',
-      headers: await authHeader('PUT', url),
       body: formData
     });
 
@@ -815,7 +781,6 @@ const isScoreValid = computed(() => {
 
 onMounted(async () => {
   currentW3CSeason.value = await resolveCurrentW3CSeason();
-  if (authStore.me) seasonStore.fetchSeasons().catch(() => {});  // names the season the signup alert asks about
   fetchPlayerData();
 });
 </script>

@@ -3,13 +3,11 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { usePlayerCareerStatsStore } from '@/stores/player_career_stats.store';
 import { usePlayerStore } from '@/stores/player.store';
-import { useAuthStore } from '@/stores';
 
 
 const store = usePlayerCareerStatsStore();
 const { stats, totalStats } = storeToRefs(store);
 const playerStore = usePlayerStore();
-const auth = useAuthStore();
 const { players } = storeToRefs(playerStore);
 
 const isLoading = ref(true);
@@ -263,7 +261,6 @@ onMounted(async () => {
               </v-col>
               <v-col cols="12" md="6" class="text-right">
                 <v-btn
-                  v-if="auth.isAdmin"
                   color="primary"
                   prepend-icon="mdi-upload"
                   @click="openImportDialog"
@@ -322,7 +319,7 @@ onMounted(async () => {
             </template>
 
             <template v-slot:item.actions="{ item }">
-              <template v-if="auth.isAdmin && item.id !== null">
+              <template v-if="item.id !== null">
                 <v-btn
                   icon="mdi-pencil"
                   size="small"
@@ -490,7 +487,7 @@ onMounted(async () => {
         <v-card-actions>
           <v-spacer />
           <v-btn color="grey" variant="text" @click="closeEditDialog">Cancel</v-btn>
-          <v-btn v-if="auth.isAdmin" color="primary" variant="flat" @click="saveEdit">Save</v-btn>
+          <v-btn color="primary" variant="flat" @click="saveEdit">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -506,7 +503,7 @@ onMounted(async () => {
         <v-card-actions>
           <v-spacer />
           <v-btn color="grey" variant="text" @click="closeDeleteDialog">Cancel</v-btn>
-          <v-btn v-if="auth.isAdmin" color="error" variant="flat" @click="confirmDelete">Delete</v-btn>
+          <v-btn color="error" variant="flat" @click="confirmDelete">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -537,7 +534,7 @@ onMounted(async () => {
         <v-card-actions>
           <v-spacer />
           <v-btn color="grey" variant="text" @click="closeImportDialog">Cancel</v-btn>
-          <v-btn v-if="auth.isAdmin" color="primary" variant="flat" @click="handleFileUpload">Upload</v-btn>
+          <v-btn color="primary" variant="flat" @click="handleFileUpload">Upload</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

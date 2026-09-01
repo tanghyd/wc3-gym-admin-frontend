@@ -28,60 +28,85 @@
       </v-card-text>
     </v-card>
 
-    <!-- Captain Selection Card -->
+    <!-- Coach Selection Card -->
     <v-card elevation="2" class="mb-4">
       <v-card-title class="bg-secondary d-flex align-center">
         <v-icon class="mr-2">mdi-shield-star</v-icon>
-        <span>Team Captains</span>
+        <span>Team Coaches</span>
       </v-card-title>
       <v-card-text class="pa-0">
         <v-toolbar flat height="auto">
           <v-row align="center" class="flex-wrap ma-0 pa-2">
             <v-spacer />
             <v-col cols="12" sm="auto">
-              <v-btn variant="elevated" color="success" prepend-icon="mdi-content-save" v-if="auth.isAdmin" @click="saveCaptains" :loading="isSavingCaptains" :disabled="isSavingCaptains" block>
-                Save Captains
+              <v-btn variant="elevated" color="success" prepend-icon="mdi-content-save" @click="saveCoaches" :loading="isSavingCoaches" :disabled="isSavingCoaches" block>
+                Save Coaches
               </v-btn>
             </v-col>
           </v-row>
         </v-toolbar>
       </v-card-text>
       <v-card-text>
-        <p v-if="auth.isAdmin" class="text-subtitle-2 mb-3">Assign the captains of this season:</p>
-
-        <v-autocomplete
-          v-model="captainIds"
-          :readonly="!auth.isAdmin"
-          :items="allAvailableUsers"
-          item-title="name"
-          item-value="id"
-          label="Captains"
-          placeholder="Start typing to search..."
-          multiple
-          chips
-          :closable-chips="auth.isAdmin"
-          :clearable="auth.isAdmin"
-          auto-select-first
-          :hint="auth.isAdmin ? 'Any number of captains' : ''"
-          persistent-hint
-        >
-          <template v-slot:prepend-inner>
-            <v-icon color="primary">mdi-shield-star</v-icon>
-          </template>
-        </v-autocomplete>
-
-        <!-- Save Captains answers the accounts the guild has not granted the role yet -->
-        <v-chip
-          v-for="captain in missingRoleCaptains"
-          :key="captain.id"
-          color="warning"
-          variant="tonal"
-          size="small"
-          prepend-icon="mdi-alert"
-          class="mr-2 mt-4"
-        >
-          {{ captain.name }} — role missing in Discord
-        </v-chip>
+        <p class="text-subtitle-2 mb-3">Assign coaches for this season (Coach 1 is the main coach):</p>
+        
+        <v-row>
+          <v-col cols="12" md="4">
+            <v-autocomplete
+              v-model="coach1"
+              :items="allAvailableUsers"
+              item-title="name"
+              item-value="id"
+              label="Coach 1 (Main Coach)"
+              placeholder="Start typing to search..."
+              clearable
+              auto-select-first
+              hint="Primary team coach"
+              persistent-hint
+            >
+              <template v-slot:prepend-inner>
+                <v-icon color="primary">mdi-shield-star</v-icon>
+              </template>
+            </v-autocomplete>
+          </v-col>
+          
+          <v-col cols="12" md="4">
+            <v-autocomplete
+              v-model="coach2"
+              :items="allAvailableUsers"
+              item-title="name"
+              item-value="id"
+              label="Coach 2 (Optional)"
+              placeholder="Start typing to search..."
+              clearable
+              auto-select-first
+              hint="Assistant coach"
+              persistent-hint
+            >
+              <template v-slot:prepend-inner>
+                <v-icon>mdi-shield-star-outline</v-icon>
+              </template>
+            </v-autocomplete>
+          </v-col>
+          
+          <v-col cols="12" md="4">
+            <v-autocomplete
+              v-model="coach3"
+              :items="allAvailableUsers"
+              item-title="name"
+              item-value="id"
+              label="Coach 3 (Optional)"
+              placeholder="Start typing to search..."
+              clearable
+              auto-select-first
+              hint="Assistant coach"
+              persistent-hint
+            >
+              <template v-slot:prepend-inner>
+                <v-icon>mdi-shield-star-outline</v-icon>
+              </template>
+            </v-autocomplete>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
 
@@ -172,13 +197,13 @@
               <v-row align="center" class="flex-wrap ma-0 pa-2">
                 <v-spacer />
                 <v-col cols="12" sm="auto">
-                  <v-btn v-if="auth.isAdmin" variant="elevated" color="primary" @click="syncW3CTeam" :loading="isLoading" :disabled="isLoading" prepend-icon="mdi-sync" block>
+                  <v-btn variant="elevated" color="primary" @click="syncW3CTeam" :loading="isLoading" :disabled="isLoading" prepend-icon="mdi-sync" block>
                     Sync W3C
                     <v-tooltip activator="parent" location="top">MMR and ladder matches</v-tooltip>
                   </v-btn>
                 </v-col>
                 <v-col cols="12" sm="auto">
-                  <v-btn v-if="auth.isAdmin" variant="elevated" color="success" prepend-icon="mdi-plus" @click="showNewPlayerModal = true" block>
+                  <v-btn variant="elevated" color="success" prepend-icon="mdi-plus" @click="showNewPlayerModal = true" block>
                     Add Player
                   </v-btn>
                 </v-col>
@@ -234,7 +259,7 @@
         <v-icon size="64" color="grey-lighten-1">mdi-account-off</v-icon>
         <div class="text-h6 text-grey mt-4 mb-2">No players found</div>
         <p class="text-grey-darken-1 mb-4">Add players to this team to get started</p>
-        <v-btn v-if="auth.isAdmin" variant="elevated" color="primary" prepend-icon="mdi-plus" @click="showNewPlayerModal = true">
+        <v-btn variant="elevated" color="primary" prepend-icon="mdi-plus" @click="showNewPlayerModal = true">
           Add First Player
         </v-btn>
       </v-card-text>
@@ -279,7 +304,7 @@
       <v-card-actions>
         <v-spacer />
         <v-btn @click="showNewPlayerModal = false">Cancel</v-btn>
-        <v-btn color="primary" variant="elevated" prepend-icon="mdi-content-save" v-if="auth.isAdmin" @click="saveSelectedPlayers">
+        <v-btn color="primary" variant="elevated" prepend-icon="mdi-content-save" @click="saveSelectedPlayers">
           Add Selected Players
         </v-btn>
       </v-card-actions>
@@ -301,7 +326,7 @@
 <script setup>
 import RowActions from '@/components/RowActions.vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore, useTeamStore, usePlayerStore, useLadderStore } from '@/stores';
+import { useTeamStore, usePlayerStore, useLadderStore } from '@/stores';
 import { resolveCurrentW3CSeason } from '@/helpers/current-season';
 import { SCORED_NOTE, MMR_NOTE, ACHIEVEMENTS_NOTE, LADDER_NOTE } from '@/helpers/achievements';
 import ColumnNote from '@/components/ColumnNote.vue';
@@ -322,7 +347,6 @@ const router = useRouter();
 const teamStore = useTeamStore();
 const playerStore = usePlayerStore();
 const ladderStore = useLadderStore();
-const auth = useAuthStore();
 
 // Route params
 const teamId = computed(() => router.currentRoute.value.params.id);
@@ -352,16 +376,12 @@ const players = ref([]);
 const showNewPlayerModal = ref(false);
 const selectedPlayers = ref([]);
 
-// Captain management state
-const captainIds = ref([]);
-const discordRoleMissing = ref([]);
-const isSavingCaptains = ref(false);
+// Coach management state
+const coach1 = ref(null);
+const coach2 = ref(null);
+const coach3 = ref(null);
+const isSavingCoaches = ref(false);
 const allAvailableUsers = ref([]);
-
-const missingRoleCaptains = computed(() =>
-  (team.value?.captains_by_season?.[seasonId.value] || [])
-    .filter(captain => discordRoleMissing.value.includes(captain.discordId))
-);
 
 // Player details state
 const showPlayerDetails = ref(false);
@@ -453,14 +473,17 @@ const fetchTeam = async () => {
     }
     players.value = team.value.player_by_season[seasonId.value] || [];
     
-    // Load ALL users for captain selection (captains can be anyone, not just season players)
+    // Load ALL users for coach selection (coaches can be anyone, not just season players)
     // Fetch all players first to populate allPlayers (for player modal)
     await playerStore.fetchPlayers();
-    // For captains, use ALL users directly from store (not filtered by season)
+    // For coaches, use ALL users directly from store (not filtered by season)
     allAvailableUsers.value = playerStore.players || [];
     
-    // Initialize captain selections based on current captains (order is preserved)
-    captainIds.value = (team.value.captains_by_season?.[seasonId.value] || []).map(captain => captain.id);
+    // Initialize coach selections based on current coaches (order is preserved)
+    const currentCoaches = team.value.coaches_by_season?.[seasonId.value] || [];
+    coach1.value = currentCoaches[0]?.id || null;
+    coach2.value = currentCoaches[1]?.id || null;
+    coach3.value = currentCoaches[2]?.id || null;
   } catch (error) {
     console.error(error);
     errorMessage.value = 'Failed to load team. Please try again later.';
@@ -469,18 +492,20 @@ const fetchTeam = async () => {
   }
 };
 
-const saveCaptains = async () => {
-  isSavingCaptains.value = true;
+const saveCoaches = async () => {
+  // Build coach array in order, filtering out null values
+  const coachIds = [coach1.value, coach2.value, coach3.value].filter(id => id !== null);
+  
+  isSavingCoaches.value = true;
   try {
-    const saved = await teamStore.setCaptains(teamId.value, seasonId.value, captainIds.value);
-    // Refresh team data to show updated captain status
+    await teamStore.setCoaches(teamId.value, seasonId.value, coachIds);
+    // Refresh team data to show updated coach status
     await fetchTeam();
-    discordRoleMissing.value = saved?.discord_role_missing || [];
   } catch (error) {
-    console.error('Failed to save captains:', error);
-    errorMessage.value = 'Failed to save captains. Please try again.';
+    console.error('Failed to save coaches:', error);
+    errorMessage.value = 'Failed to save coaches. Please try again.';
   } finally {
-    isSavingCaptains.value = false;
+    isSavingCoaches.value = false;
   }
 };
 

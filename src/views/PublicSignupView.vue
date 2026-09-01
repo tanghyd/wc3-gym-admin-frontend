@@ -33,7 +33,7 @@
             <div><strong>Name:</strong> The player name — choose freely (this is how players are shown in the UI).</div>
             <div><strong>BattleTag:</strong> Your BattleNet / W3C ID in the format <code>Name#123456</code>. You can find it on your W3C profile — <a href="https://w3champions.com/" target="_blank" rel="noopener noreferrer">W3Champions</a>.</div>
             <div><strong>Player Country:</strong> Country you live in — this helps with scheduling matches.</div>
-            <div><strong>Main race:</strong> The race you plan to play in the league. It can be changed until the league starts; after the draft changes require agreement from your team captain.</div>
+            <div><strong>Race:</strong> The race you plan to play in the league. It can be changed until the league starts; after the draft changes require agreement from your team captain.</div>
             <div><strong>Signup Race MMR:</strong> Current MMR for the selected race on W3Champions.</div>
           </v-alert>
           <v-form ref="formRef" @submit.prevent="onSubmit">
@@ -85,19 +85,11 @@
             </v-row>
 
             <v-row :dense="true">
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <CountrySelect v-model="country" required />
               </v-col>
-              <v-col cols="12" md="4">
-                <RaceSelect v-model="race" label="Main race" required />
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-autocomplete
-                  v-model="timezone"
-                  label="Timezone"
-                  :menu-props="{ scrollStrategy: 'close' }"
-                  :items="timezones"
-                />
+              <v-col cols="12" md="6">
+                <RaceSelect v-model="race" required />
               </v-col>
             </v-row>
 
@@ -126,15 +118,11 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 // token validation/consumption is handled server-side via backend endpoints
-import { useSeasonStore, useConfigStore, usePlayerStore, useAuthStore } from '@/stores';
-import { fetchWrapper } from '@/helpers';
-import { storeToRefs } from 'pinia';
-import CountryCodes from 'country-code-info';
+import { useSeasonStore, useConfigStore, usePlayerStore } from '@/stores';
 
 const route = useRoute();
-const router = useRouter();
 const token = ref(route.query.token || '');
 const loading = ref(true);
 const tokenInvalid = ref(false);
@@ -146,11 +134,8 @@ const discordId = ref('');
 const discordTag = ref('');
 const name = ref('');
 const battleTag = ref('');
-// the browser's region is the default country, e.g. en-US -> US; empty when it names no country
-const country = ref(CountryCodes.findCountry({ a2: new Intl.Locale(navigator.language || 'en').region })?.a2 || '');
+const country = ref('');
 const race = ref('');
-const timezones = Intl.supportedValuesOf('timeZone');
-const timezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 const selectedSignupSeasonId = ref(null);
 
 const submitting = ref(false);
@@ -178,34 +163,12 @@ const battleTagRules = [
   v => (/^\S+#\d+$/.test(String(v || ''))) || 'BattleTag must be like Name#123456'
 ];
 
-const authStore = useAuthStore();
 const seasonStore = useSeasonStore();
 const configStore = useConfigStore();
 const playerStore = usePlayerStore();
-const { seasons } = storeToRefs(seasonStore);
 
 onMounted(async () => {
   loading.value = true;
-  // a Discord session identifies the player instead of a one-shot token
-  if (!token.value && authStore.me) {
-    discordId.value = authStore.me.discord_id;
-    discordTag.value = authStore.me.name;
-    // the linked users row prefills the form; /me says which season the signup is for
-    const existing = authStore.me.user;
-    if (existing) {
-      name.value = existing.name || '';
-      battleTag.value = existing.battleTag || '';
-      country.value = existing.country || country.value;
-      race.value = existing.race || '';
-      timezone.value = existing.timezone || timezone.value;
-    }
-    selectedSignupSeasonId.value = authStore.me.season_id || null;
-    alreadySignedUp.value = !!authStore.me.signed_up;
-    try { await seasonStore.fetchSeasons(); } catch (e) { /* ignore */ }
-    seasonName.value = seasons.value.find(x => x.id === selectedSignupSeasonId.value)?.name || '';
-    loading.value = false;
-    return;
-  }
   if (!token.value) {
     tokenInvalid.value = true;
     tokenInvalidReason.value = 'missing_token';
@@ -259,7 +222,6 @@ onMounted(async () => {
           if (existing.battleTag) battleTag.value = existing.battleTag;
           if (existing.country) country.value = existing.country;
           if (existing.race) race.value = existing.race;
-          if (existing.timezone) timezone.value = existing.timezone;
         }
       } catch (e) {
         console.log('Could not prefetch existing user data:', e);
@@ -310,25 +272,28 @@ async function onSubmit() {
   try {
     // Build payload and call the new public signup endpoint which creates the user
     const payload = {
-      token: token.value || undefined,
+      token: token.value,
       name: name.value,
       battleTag: battleTag.value,
       country: country.value,
       race: race.value,
-      timezone: timezone.value || undefined,
       // include season id if token had one or it was provided
       season_id: selectedSignupSeasonId.value ? selectedSignupSeasonId.value : undefined
     };
     const backend = import.meta.env.VITE_BACKEND_URL || '';
-    await fetchWrapper.post(`${backend}/signup`, payload);
+    const res = await fetch(`${backend}/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(txt || `Signup failed: ${res.status}`);
+    }
 
     // user created on backend — end-user flow is complete; they can close the page
     success.value = true;
-    // the profile needs the fresh users row and signup before it can show the dashboard
-    if (!token.value) {
-      await authStore.fetchMe();
-      if (route.path === '/signup') router.push('/profile');
-    }
   } catch (err) {
     console.log('Signup error:', err);
     submitError.value = (err && err.message) || (err && err.error) || String(err);

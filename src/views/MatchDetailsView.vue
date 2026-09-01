@@ -133,7 +133,7 @@
               variant="elevated"
               color="success"
               prepend-icon="mdi-sync"
-              v-if="auth.isAdmin" @click="syncW3CTeams"
+              @click="syncW3CTeams"
               :loading="isLoading"
               block
             >
@@ -154,7 +154,7 @@
         <v-chip class="mr-2" size="small" color="success">
           {{ series?.length || 0 }} Published
         </v-chip>
-        <v-chip v-if="auth.isCaptain" class="mr-2" size="small" color="warning">
+        <v-chip class="mr-2" size="small" color="warning">
           {{ draftSeries?.length || 0 }} Drafts
         </v-chip>
         <v-btn
@@ -174,7 +174,7 @@
           <v-icon start>mdi-check-circle</v-icon>
           Published Series
         </v-tab>
-        <v-tab v-if="auth.isCaptain" value="draft">
+        <v-tab value="draft">
           <v-icon start>mdi-pencil-circle</v-icon>
           Draft Series
         </v-tab>
@@ -206,7 +206,7 @@
                   <v-row align="center" class="flex-wrap ma-0 pa-2">
                     <v-spacer />
                     <v-col cols="12" sm="auto">
-                      <v-btn variant="elevated" color="primary" prepend-icon="mdi-plus" v-if="auth.isAdmin" @click="openCreateNewSeries" block>
+                      <v-btn variant="elevated" color="primary" prepend-icon="mdi-plus" @click="openCreateNewSeries" block>
                         Add Series
                       </v-btn>
                     </v-col>
@@ -276,19 +276,19 @@
               variant="tonal" 
               class="mt-4"
               prepend-icon="mdi-plus"
-              v-if="auth.isAdmin" @click="openCreateNewSeries"
+              @click="openCreateNewSeries"
             >
               Create Series
             </v-btn>
           </v-card-text>
 
-          <v-card-actions v-if="auth.isAdmin && series && series.length > 0">
+          <v-card-actions v-if="series && series.length > 0">
             <v-spacer></v-spacer>
             <v-btn 
               variant="text" 
               color="error" 
               prepend-icon="mdi-delete-sweep"
-              v-if="auth.isAdmin" @click="openDeleteDialog(null, removeAllSeries)"
+              @click="openDeleteDialog(null, removeAllSeries)"
             >
               Delete All Published
             </v-btn>
@@ -296,7 +296,7 @@
         </v-window-item>
 
         <!-- Draft Series Table -->
-        <v-window-item v-if="auth.isCaptain" value="draft">
+        <v-window-item value="draft">
           <v-card-text v-if="draftSeries && draftSeries.length > 0" class="pa-0">
             <v-data-table
               :headers="draftSeriesTableHeader"
@@ -324,7 +324,7 @@
                     </v-alert>
                     <v-spacer />
                     <v-col cols="12" sm="auto">
-                      <v-btn variant="elevated" color="warning" prepend-icon="mdi-plus" v-if="auth.isAdmin" @click="openCreateNewDraftSeries" block>
+                      <v-btn variant="elevated" color="warning" prepend-icon="mdi-plus" @click="openCreateNewDraftSeries" block>
                         Add Draft Series
                       </v-btn>
                     </v-col>
@@ -415,19 +415,19 @@
               variant="tonal" 
               class="mt-4"
               prepend-icon="mdi-plus"
-              v-if="auth.isAdmin" @click="openCreateNewDraftSeries"
+              @click="openCreateNewDraftSeries"
             >
               Create Draft Series
             </v-btn>
           </v-card-text>
 
-          <v-card-actions v-if="auth.isAdmin && draftSeries && draftSeries.length > 0">
+          <v-card-actions v-if="draftSeries && draftSeries.length > 0">
             <v-spacer></v-spacer>
             <v-btn 
               variant="text" 
               color="success"
               prepend-icon="mdi-publish"
-              v-if="auth.isAdmin" @click="publishAllDraftSeries"
+              @click="publishAllDraftSeries"
             >
               Publish All Drafts
             </v-btn>
@@ -435,7 +435,7 @@
               variant="text" 
               color="error" 
               prepend-icon="mdi-delete-sweep"
-              v-if="auth.isAdmin" @click="openDeleteDialog(null, removeAllDraftSeries)"
+              @click="openDeleteDialog(null, removeAllDraftSeries)"
             >
               Delete All Drafts
             </v-btn>
@@ -529,7 +529,7 @@
                 color="success" 
                 variant="elevated"
                 prepend-icon="mdi-sync"
-                v-if="auth.isAdmin" @click="syncW3CTeams" 
+                @click="syncW3CTeams" 
                 :loading="isLoading" 
                 :disabled="isLoading"
               >
@@ -701,8 +701,8 @@
       </v-card>
     </v-dialog>
 
-    <!-- Team Rosters Expansion Panel; proposing series is an admin write -->
-    <v-expansion-panels v-if="auth.isAdmin" class="mt-4" v-model="teamRostersPanel">
+    <!-- Team Rosters Expansion Panel -->
+    <v-expansion-panels class="mt-4" v-model="teamRostersPanel">
       <v-expansion-panel>
         <v-expansion-panel-title class="text-h6">
           <v-icon class="mr-2">mdi-account-group</v-icon>
@@ -1067,7 +1067,7 @@ import bannerImg from '@/assets/media/match-banner.jpg'
 import { useRouter } from 'vue-router';
 import { ref, onMounted, computed } from 'vue';
 import { DateTime } from "luxon";
-import { useAuthStore, useMatchStore, useSeriesStore, useTeamStore } from '@/stores';
+import { useMatchStore, useSeriesStore, useTeamStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { fetchWrapper } from '@/helpers';
 import SimpleTimePicker from '../components/SimpleTimePicker.vue';
@@ -1086,7 +1086,6 @@ const router = useRouter();
 const matchStore = useMatchStore();
 const seriesStore = useSeriesStore();
 const teamStore = useTeamStore();
-const auth = useAuthStore();
 const { match } = storeToRefs(matchStore);
 const { series, draftSeries } = storeToRefs(seriesStore);
 
@@ -1500,7 +1499,7 @@ const showStats = async(player) => {
 
 const fetchSeriesRows = () => Promise.all([
   seriesStore.getSeriesByMatchId(matchId.value),
-  auth.isCaptain && seriesStore.getDraftSeriesByMatchId(matchId.value),  // drafts are captain-only on the backend
+  seriesStore.getDraftSeriesByMatchId(matchId.value),
 ]);
 
 const fetchMatchSeries = async () => {
