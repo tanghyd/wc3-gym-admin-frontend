@@ -1,18 +1,7 @@
 import { defineStore } from 'pinia';
 import { fetchWrapper, pageQuery } from '@/helpers';
-import { authHeader } from '@/helpers/fetch-wrapper';
 
 const backendUrl = `${import.meta.env.VITE_BACKEND_URL}`;
-
-// The public write routes: the body carries ?token= callers, the bearer carries a session
-async function publicWrite(method, url, payload) {
-    const headers = await authHeader(method, url);
-    if (payload) headers['Content-Type'] = 'application/json';
-
-    const response = await fetch(url, { method, headers, body: payload && JSON.stringify(payload) });
-    if (!response.ok) throw await response.json();
-    return method === 'DELETE' ? undefined : response.json();
-}
 
 export const useFantasyStore = defineStore({
     id: 'fantasy',
@@ -117,10 +106,9 @@ export const useFantasyStore = defineStore({
             }
         },
 
-        // Public endpoints: a ?token= link, or the session bearer when the member is signed in
+        // Public endpoints (token-based, no JWT required)
         async public_getUserInfo(token) {
-            const url = token ? `${backendUrl}/user-info?token=${token}` : `${backendUrl}/user-info`;
-            const response = await fetch(url, { headers: await authHeader('GET', url) });
+            const response = await fetch(`${backendUrl}/user-info?token=${token}`);
             if (!response.ok) {
                 throw new Error('Invalid or expired token');
             }
@@ -128,20 +116,67 @@ export const useFantasyStore = defineStore({
         },
 
         async public_createFantasyTeam(payload) {
-            return publicWrite('POST', `${backendUrl}/fantasy-team`, payload);
+            const response = await fetch(`${backendUrl}/fantasy-team`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw errorData;
+            }
+            
+            return await response.json();
         },
 
         async public_createBet(payload) {
-            return publicWrite('POST', `${backendUrl}/fantasy-bet`, payload);
+            const response = await fetch(`${backendUrl}/fantasy-bet`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw errorData;
+            }
+            
+            return await response.json();
         },
 
         async public_updateBet(betId, payload) {
-            return publicWrite('PUT', `${backendUrl}/fantasy-bet/${betId}`, payload);
+            const response = await fetch(`${backendUrl}/fantasy-bet/${betId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw errorData;
+            }
+            
+            return await response.json();
         },
 
         async public_deleteBet(betId, token) {
-            const query = token ? `?token=${token}` : '';
-            await publicWrite('DELETE', `${backendUrl}/fantasy-bet/${betId}${query}`);
+            const response = await fetch(`${backendUrl}/fantasy-bet/${betId}?token=${token}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw errorData;
+            }
+            
+            return;
         },
 
         async getTeamScoreBreakdown(teamId, seasonId) {

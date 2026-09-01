@@ -43,7 +43,7 @@
               <v-row align="center" class="flex-wrap ma-0 pa-2">
                 <v-spacer />
                 <v-col cols="12" sm="auto">
-                  <v-btn v-if="auth.isAdmin" variant="elevated" color="primary" prepend-icon="mdi-plus" @click="createTeam()" block>
+                  <v-btn variant="elevated" color="primary" prepend-icon="mdi-plus" @click="createTeam()" block>
                     Add New Team
                   </v-btn>
                 </v-col>
@@ -77,7 +77,6 @@
                 variant="tonal" 
                 class="mt-4"
                 prepend-icon="mdi-plus"
-                v-if="auth.isAdmin"
                 @click="createTeam"
               >
                 Create First Team
@@ -121,6 +120,15 @@
               />
             </v-col>
             <v-col cols="12" md="6">
+              <v-text-field
+                v-model="newTeam.discord_role" 
+                label="Team Discord Role"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-discord"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
               <v-file-input
                 v-model="file"
                 label="Team Icon"
@@ -139,7 +147,7 @@
         <v-card-actions class="px-4 py-3">
           <v-spacer></v-spacer>
           <v-btn variant="text" @click="cancelAddNewTeam">Cancel</v-btn>
-          <v-btn v-if="auth.isAdmin" color="primary" prepend-icon="mdi-check" @click="createNewTeam">Create Team</v-btn>
+          <v-btn color="primary" prepend-icon="mdi-check" @click="createNewTeam">Create Team</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -177,6 +185,15 @@
               />
             </v-col>
             <v-col cols="12" md="6">
+              <v-text-field
+                v-model="selectedTeam.discord_role" 
+                label="Team Discord Role"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-discord"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
               <v-file-input
                 v-model="file"
                 label="Team Icon"
@@ -195,7 +212,7 @@
         <v-card-actions class="px-4 py-3">
           <v-spacer></v-spacer>
           <v-btn variant="text" @click="cancelEdit">Cancel</v-btn>
-          <v-btn v-if="auth.isAdmin" color="primary" prepend-icon="mdi-check" @click="updateTeam">Save Changes</v-btn>
+          <v-btn color="primary" prepend-icon="mdi-check" @click="updateTeam">Save Changes</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -211,7 +228,7 @@
 <script setup>
 import RowActions from '@/components/RowActions.vue';
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
-import { useAuthStore, useTeamStore } from '@/stores';
+import { useTeamStore } from '@/stores';
 import { onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { teamImageUrl, showDefaultTeamImage } from '@/helpers/team-image';
@@ -227,7 +244,6 @@ const extractErrorMessage = (error) => {
 
 // Store initialization and refs
 const teamStore = useTeamStore();
-const auth = useAuthStore();
 const { teams } = storeToRefs(teamStore);
 
 // State for editing
@@ -248,6 +264,7 @@ const tableHeader = [
   { title: 'ID', value: 'id', align: 'start', sortable: true },
   { title: 'Name', value: 'name', sortable: true },  
   { title: 'Long Name', value: 'long_name', sortable: true }, 
+  { title: 'Discord Role', value: 'discord_role', sortable: true }, 
   { title: 'Actions', value: 'actions' }, 
 ]
 // Fetch data when the page is loaded
@@ -281,7 +298,8 @@ onMounted( () => {
 const createTeam = () => {
   newTeam.value = {
     name: '',
-    long_name: ''
+    long_name: '',
+    discord_role:''
   }
   creationError.value = '';
   showNewTeamModal.value = true;
@@ -291,7 +309,8 @@ const editTeam = (team) => {
   selectedTeam.value = { 
     id: team.id,
     name: team.name,
-    long_name: team.long_name
+    long_name: team.long_name,
+    discord_role: team.discord_role
   };
   updateError.value = '';
   showEditTeamModal.value = true;
@@ -319,7 +338,8 @@ const cancelEdit = () => {
   selectedTeam.value = { 
     id: null,
     name: '',
-    long_name: ''
+    long_name: '',
+    discord_role: ''
     };// Clear the selected user
 };
 
@@ -354,7 +374,8 @@ const createNewTeam = async () => {
       selectedTeam.value = {
         id: createdTeam.id,
         name: createdTeam.name,
-        long_name: createdTeam.long_name
+        long_name: createdTeam.long_name,
+        discord_role: createdTeam.discord_role
       };
       updateError.value = 'Team created, but icon upload failed: ' + extractErrorMessage(imgError);
       showEditTeamModal.value = true;
@@ -383,7 +404,8 @@ const cancelAddNewTeam = () => {
   file.value = null;
   newTeam.value = {
     name: '',
-    long_name: ''
+    long_name: '',
+    discord_role: ''
   };
 };
 

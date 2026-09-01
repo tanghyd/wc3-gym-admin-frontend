@@ -219,7 +219,7 @@
                   <v-text-field
                     v-model="settingsMap.admin_role"
                     label="Admin Role ID"
-                    hint="Discord role ID for bot commands"
+                    hint="Discord role ID for administrators"
                     variant="outlined"
                     prepend-inner-icon="mdi-shield-account"
                   ></v-text-field>
